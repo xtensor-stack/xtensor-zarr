@@ -12,15 +12,18 @@
 #include "gtest/gtest.h"
 #include "xtensor-zarr/hierarchy.hpp"
 
+namespace fs = ghc::filesystem;
+
 namespace xt
 {
-    TEST(hierarchy, load)
+    TEST(hierarchy, create)
     {
         std::vector<size_t> shape = {4, 4};
         std::vector<size_t> chunk_shape = {2, 2};
-        auto h = create_hierarchy("path_to_array");
-        auto a1 = h.create_array<double>("path_to_array/my_array", shape, chunk_shape);
+        fs::path hier_path = "test.zr3";
+        auto h = create_hierarchy(hier_path);
+        auto a1 = h.create_array<double>(hier_path / "my_array", shape, chunk_shape);
         a1(2, 1) = 3.;
-        auto a2 = h.get_array<double>("path_to_array/my_array");
+        auto a2 = h.get_array<double>(hier_path / "my_array");
     }
 }

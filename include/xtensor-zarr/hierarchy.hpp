@@ -19,13 +19,16 @@
 #include "xtensor/xchunked_array.hpp"
 #include "xtensor/xfile_array.hpp"
 #include "xtensor/xdisk_io_handler.hpp"
+#include "thirdparty/filesystem.hpp"
+
+namespace fs = ghc::filesystem;
 
 namespace xt
 {
     class hierarchy
     {
     public:
-        hierarchy(const char* path): m_path(path) {}
+        hierarchy(const fs::path& path): m_path(path) {}
 
         void create_hierarchy()
         {
@@ -34,20 +37,21 @@ namespace xt
             j["metadata_encoding"] = "application/json";
             j["extensions"] = nlohmann::json::array();
 
-            auto zarr_json = m_path + "/zarr.json";
-            std::ofstream o(zarr_json);
+            fs::create_directories(m_path);
+            auto zarr_json = m_path / "zarr.json";
+            std::ofstream o(zarr_json.string());
             o << std::setw(4) << j << std::endl;
         }
 
         template <class value_type, class shape_type, class io_handler = xdisk_io_handler<value_type>>
-        auto create_array(const char* path, shape_type shape, shape_type chunk_shape)
+        auto create_array(const fs::path& path, shape_type shape, shape_type chunk_shape)
         {
             nlohmann::json j;
             j["shape"] = shape;
             j["chunk_grid"]["type"] = "regular";
             j["chunk_grid"]["chunk_shape"] = chunk_shape;
 
-            std::ofstream stream(path);
+            std::ofstream stream(path.string());
             stream << std::setw(4) << j << std::endl;
 
             xchunked_array<xchunk_store_manager<xfile_array<value_type, io_handler>>> a(shape, chunk_shape);
@@ -56,10 +60,10 @@ namespace xt
 
         template <class value_type, class io_handler = xdisk_io_handler<value_type>>
         auto
-        get_array(const char* path)
+        get_array(const fs::path& path)
         {
             int i;
-            std::ifstream stream(path);
+            std::ifstream stream(path.string());
             std::string s;
             stream.seekg(0, stream.end);
             s.reserve(stream.tellg());
@@ -88,17 +92,17 @@ namespace xt
         }
 
     private:
-        std::string m_path;
+        fs::path m_path;
     };
 
-    hierarchy create_hierarchy(const char* path)
+    hierarchy create_hierarchy(const fs::path& path)
     {
         hierarchy h(path);
         h.create_hierarchy();
         return h;
     }
 
-    hierarchy get_hierarchy(const char* path)
+    hierarchy get_hierarchy(const fs::path& path)
     {
         hierarchy h(path);
         return h;

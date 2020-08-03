@@ -32,24 +32,20 @@ install:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         export CXX=clang++ CC=clang;
       fi
-    # Install mamba
-    - conda install mamba -c conda-forge
     # Install host dependencies
-    - mamba install nlohmann_json xtensor-io xtensor -c conda-forge
+    - conda create -n test gtest nlohmann_json xtensor-io xtensor -c conda-forge
     # Install build dependencies
-    - mamba install cmake -c conda-forge
+    - conda install -n test cmake -c conda-forge
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-        mamba install gxx_linux-64 libgcc -c conda-forge;
+        conda install -n test gxx_linux-64 libgcc -c conda-forge;
       fi
-    # Activate root environment
-    - source activate root
+    # Activate test environment
+    - source activate test
     # Build
     - export LDFLAGS="${LDFLAGS} -Wl,-rpath,$CONDA_PREFIX/lib"
     - export LINKFLAGS="${LDFLAGS}"
     - mkdir build
     - cd build
-    - cmake -DDOWNLOAD_GTEST=ON -DCMAKE_PREFIX_PATH=$CONDA_PREFIX ..;
-    - make -j2 test_xtensor_zarr
-    - cd test
+    - cmake -DBUILD_TESTS=ON ..
 script:
-    - ./test_xtensor_zarr
+    - make xtest
