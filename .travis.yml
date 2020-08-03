@@ -1,0 +1,55 @@
+language: cpp
+dist: xenial
+env:
+matrix:
+  fast_finish: true
+  include:
+    - os: linux
+    - os: osx
+      osx_image: xcode8
+      compiler: clang
+env:
+  global:
+    - MINCONDA_VERSION="latest"
+    - MINCONDA_LINUX="Linux-x86_64"
+    - MINCONDA_OSX="MacOSX-x86_64"
+install:
+    # Define the version of miniconda to download
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        MINCONDA_OS=$MINCONDA_LINUX;
+      elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        MINCONDA_OS=$MINCONDA_OSX;
+      fi
+    # Download and install conda
+    - wget "http://repo.continuum.io/miniconda/Miniconda3-$MINCONDA_VERSION-$MINCONDA_OS.sh" -O miniconda.sh;
+    - bash miniconda.sh -b -p $HOME/miniconda
+    - export CONDA_PREFIX=$HOME/miniconda
+    - export PATH="$HOME/miniconda/bin:$PATH"
+    - hash -r
+    - conda config --set always_yes yes --set changeps1 no
+    - conda update -q conda
+    - conda info -a
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        export CXX=clang++ CC=clang;
+      fi
+    # Install mamba
+    - conda install mamba -c conda-forge
+    # Install host dependencies
+    - mamba install nlohmann_json xtensor-io xtensor -c conda-forge
+    # Install build dependencies
+    - mamba install cmake -c conda-forge
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+        mamba install gxx_linux-64 libgcc -c conda-forge;
+      fi
+    # Activate root environment
+    - source activate root
+    # Build
+    - export LDFLAGS="${LDFLAGS} -Wl,-rpath,$CONDA_PREFIX/lib"
+    - export LINKFLAGS="${LDFLAGS}"
+    - mkdir build
+    - cd build
+    - cmake -DDOWNLOAD_GTEST=ON -DCMAKE_PREFIX_PATH=$CONDA_PREFIX ..;
+    - make -j2 test_xtensor_zarr
+    - cd test
+script:
+    - ./test_xtensor_zarr
