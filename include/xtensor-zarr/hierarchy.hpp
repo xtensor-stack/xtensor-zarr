@@ -15,11 +15,11 @@
 #include <iostream>
 
 #include "nlohmann/json.hpp"
+#include "thirdparty/filesystem.hpp"
 #include "xtensor/xchunk_store_manager.hpp"
-#include "xtensor/xchunked_array.hpp"
 #include "xtensor/xfile_array.hpp"
 #include "xtensor/xdisk_io_handler.hpp"
-#include "thirdparty/filesystem.hpp"
+#include "zarray.hpp"
 
 namespace fs = ghc::filesystem;
 
@@ -70,7 +70,7 @@ namespace xt
         }
 
         template <class value_type, class shape_type, class io_handler = xdisk_io_handler<value_type>>
-        auto create_array(const char* path, shape_type shape, shape_type chunk_shape)
+        auto create_array(const char* path, shape_type shape, shape_type chunk_shape, nlohmann::json& attrs=nlohmann::json::array())
         {
             auto meta_path = get_meta_path(m_path, path);
             auto meta_path_array = meta_path;
@@ -81,10 +81,11 @@ namespace xt
             j["shape"] = shape;
             j["chunk_grid"]["type"] = "regular";
             j["chunk_grid"]["chunk_shape"] = chunk_shape;
+            j["attributes"] = attrs;
             std::ofstream stream(meta_path_array);
             stream << std::setw(4) << j << std::endl;
 
-            xchunked_array<xchunk_store_manager<xfile_array<value_type, io_handler>>> a(shape, chunk_shape);
+            zarray<xchunk_store_manager<xfile_array<value_type, io_handler>>> a(shape, chunk_shape);
             a.chunks().set_directory(data_path.string().c_str());
             return a;
         }
@@ -123,8 +124,9 @@ namespace xt
                 chunk_shape[i] = stoi(size.dump(), nullptr);
                 i++;
             }
-            xchunked_array<xchunk_store_manager<xfile_array<value_type, io_handler>>> a(shape, chunk_shape);
+            zarray<xchunk_store_manager<xfile_array<value_type, io_handler>>> a(shape, chunk_shape);
             a.chunks().set_directory(data_path.string().c_str());
+            a.set_attrs(j["attributes"]);
             return a;
         }
 
