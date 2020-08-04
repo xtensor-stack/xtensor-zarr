@@ -37,8 +37,9 @@ message(STATUS "Building xtensor-zarr v${${PROJECT_NAME}_VERSION}")
 # Dependencies
 # ============
 
-find_package(xtensor 0.21.2 REQUIRED)
-find_package(xtl 0.6.9 REQUIRED)
+# Use development version of xtensor and xtensor-io for now
+#find_package(xtensor 0.21.2 REQUIRED)
+#find_package(xtl 0.6.9 REQUIRED)
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
 message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
@@ -68,8 +69,8 @@ target_include_directories(xtensor-zarr
 
 target_link_libraries(xtensor-zarr
   INTERFACE
-    xtl
-    xtensor
+    #xtl
+    #xtensor
     nlohmann_json::nlohmann_json
 )
 

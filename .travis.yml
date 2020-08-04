@@ -5,9 +5,9 @@ matrix:
   fast_finish: true
   include:
     - os: linux
-    - os: osx
-      osx_image: xcode8
-      compiler: clang
+    #- os: osx
+    #  osx_image: xcode8
+    #  compiler: clang
 env:
   global:
     - MINCONDA_VERSION="latest"
@@ -33,7 +33,8 @@ install:
         export CXX=clang++ CC=clang;
       fi
     # Install host dependencies
-    - conda create -n test gtest nlohmann_json xtensor-io xtensor -c conda-forge
+    #- conda create -n test gtest nlohmann_json xtensor-io xtensor -c conda-forge
+    - conda create -n test gtest nlohmann_json xtl -c conda-forge
     # Install build dependencies
     - conda install -n test cmake -c conda-forge
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -41,6 +42,14 @@ install:
       fi
     # Activate test environment
     - source activate test
+    # Install development versions of xtensor and xtensor-io
+    - mkdir dev_tmp
+    - cd dev_tmp
+    - git clone --single-branch --branch xchunked_array https://github.com/davidbrochart/xtensor.git
+    - git clone --single-branch --branch blosc https://github.com/davidbrochart/xtensor-io.git
+    - mv xtensor/include/xtensor $CONDA_PREFIX/include/
+    - mv xtensor-io/include/xtensor-io $CONDA_PREFIX/include/
+    - cd ..
     # Build
     - export LDFLAGS="${LDFLAGS} -Wl,-rpath,$CONDA_PREFIX/lib"
     - export LINKFLAGS="${LDFLAGS}"

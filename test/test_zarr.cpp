@@ -20,10 +20,13 @@ namespace xt
     {
         std::vector<size_t> shape = {4, 4};
         std::vector<size_t> chunk_shape = {2, 2};
-        fs::path hier_path = "test.zr3";
+        const char* hier_path = "test.zr3";
         auto h = create_hierarchy(hier_path);
-        auto a1 = h.create_array<double>(hier_path / "my_array", shape, chunk_shape);
-        a1(2, 1) = 3.;
-        auto a2 = h.get_array<double>(hier_path / "my_array");
+        auto a1 = h.create_array<double>("/arthur/dent", shape, chunk_shape);
+        double v = 3.;
+        a1(2, 1) = v;
+        a1.chunks().flush();
+        auto a2 = h.get_array<double>("/arthur/dent");
+        EXPECT_EQ(a2(2, 1), v);
     }
 }

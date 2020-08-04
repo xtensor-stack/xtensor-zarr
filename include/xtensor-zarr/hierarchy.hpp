@@ -25,10 +25,36 @@ namespace fs = ghc::filesystem;
 
 namespace xt
 {
+
+    auto get_meta_path(fs::path& hier_path, const char* array_path)
+    {
+        while (*array_path == '/')
+        {
+            array_path++;
+        }
+        auto meta_path = hier_path / "meta" / "root" / array_path;
+        fs::create_directories(meta_path.parent_path());
+        return meta_path;
+    }
+
+    auto get_data_path(fs::path& hier_path, const char* array_path)
+    {
+        while (*array_path == '/')
+        {
+            array_path++;
+        }
+        auto data_path = hier_path / "data" / array_path;
+        fs::create_directories(data_path);
+        return data_path;
+    }
+
     class hierarchy
     {
     public:
-        hierarchy(const fs::path& path): m_path(path) {}
+        hierarchy(const char* path)
+        {
+            m_path = path;
+        }
 
         void create_hierarchy()
         {
@@ -44,32 +70,42 @@ namespace xt
         }
 
         template <class value_type, class shape_type, class io_handler = xdisk_io_handler<value_type>>
-        auto create_array(const fs::path& path, shape_type shape, shape_type chunk_shape)
+        auto create_array(const char* path, shape_type shape, shape_type chunk_shape)
         {
+            auto meta_path = get_meta_path(m_path, path);
+            auto meta_path_array = meta_path;
+            meta_path_array += ".array";
+            auto data_path = get_data_path(m_path, path);
+
             nlohmann::json j;
             j["shape"] = shape;
             j["chunk_grid"]["type"] = "regular";
             j["chunk_grid"]["chunk_shape"] = chunk_shape;
-
-            std::ofstream stream(path.string());
+            std::ofstream stream(meta_path_array);
             stream << std::setw(4) << j << std::endl;
 
             xchunked_array<xchunk_store_manager<xfile_array<value_type, io_handler>>> a(shape, chunk_shape);
+            a.chunks().set_directory(data_path.string().c_str());
             return a;
         }
 
         template <class value_type, class io_handler = xdisk_io_handler<value_type>>
         auto
-        get_array(const fs::path& path)
+        get_array(const char* path)
         {
             int i;
-            std::ifstream stream(path.string());
+            auto meta_path = get_meta_path(m_path, path);
+            auto meta_path_array = meta_path;
+            meta_path_array += ".array";
+            auto data_path = get_data_path(m_path, path);
+
+            std::ifstream stream(meta_path_array);
             std::string s;
             stream.seekg(0, stream.end);
             s.reserve(stream.tellg());
             stream.seekg(0, stream.beg);
             s.assign((std::istreambuf_iterator<char>(stream)),
-                        std::istreambuf_iterator<char>());
+                      std::istreambuf_iterator<char>());
             auto j = nlohmann::json::parse(s);
             auto json_shape = j["shape"];
             auto json_chunk_shape = j["chunk_grid"]["chunk_shape"];
@@ -82,12 +118,13 @@ namespace xt
                 i++;
             }
             i = 0;
-            for (auto size: json_shape)
+            for (auto size: json_chunk_shape)
             {
                 chunk_shape[i] = stoi(size.dump(), nullptr);
                 i++;
             }
             xchunked_array<xchunk_store_manager<xfile_array<value_type, io_handler>>> a(shape, chunk_shape);
+            a.chunks().set_directory(data_path.string().c_str());
             return a;
         }
 
@@ -95,14 +132,14 @@ namespace xt
         fs::path m_path;
     };
 
-    hierarchy create_hierarchy(const fs::path& path)
+    hierarchy create_hierarchy(const char* path)
     {
         hierarchy h(path);
         h.create_hierarchy();
         return h;
     }
 
-    hierarchy get_hierarchy(const fs::path& path)
+    hierarchy get_hierarchy(const char* path)
     {
         hierarchy h(path);
         return h;
