@@ -88,6 +88,12 @@ set(XTENSOR_ZARR_TESTS
 #        ${CMAKE_CURRENT_BINARY_DIR}/files/${filename} COPYONLY)
 #endforeach()
 
+add_library(blosc SHARED IMPORTED)
+set_target_properties(blosc PROPERTIES
+  IMPORTED_LOCATION "$ENV{CONDA_PREFIX}/lib/libblosc.so"
+  INTERFACE_INCLUDE_DIRECTORIES "$ENV{CONDA_PREFIX}/include/"
+)
+
 add_executable(test_xtensor_zarr ${XTENSOR_ZARR_TESTS} ${XTENSOR_ZARR_HEADERS})
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     add_dependencies(test_xtensor_zarr gtest_main)
@@ -104,6 +110,7 @@ endif()
 target_link_libraries(test_xtensor_zarr
   PUBLIC
     xtensor-zarr
+    blosc
     ${CMAKE_DL_LIBS}
     ${GTEST_BOTH_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
