@@ -18,6 +18,16 @@
 
 namespace xt
 {
+    /**
+     * @class xzarr_hierarchy
+     * @brief Zarr hierarchy handler.
+     *
+     * The xzarr_hierarchy class implements a handler for creating and accessing
+     * a hierarchy, an array or a group, as well as exploring the hierarchy.
+     *
+     * @tparam store_type The type of the store (e.g. xzarr_file_system_store)
+     * @sa zarray, xzarr_group, xzarr_node
+     */
     template <class store_type>
     class xzarr_hierarchy
     {
@@ -102,10 +112,20 @@ namespace xt
         return xzarr_node<store_type>(m_store, path).get_nodes();
     }
 
-    /*********************************
-     * zarr hierarchy free functions *
-     *********************************/
+    /************************************
+     * zarr hierarchy factory functions *
+     ************************************/
 
+    /**
+     * Creates a Zarr hierarchy.
+     * This function creates a hierarchy in a store and returns a ``xzarr_hierarchy`` handler to it.
+     *
+     * @tparam store_type The type of the store (e.g. xzarr_file_system_store)
+     *
+     * @param store The hierarchy store
+     *
+     * @return returns a ``xzarr_hierarchy`` handler.
+     */
     template <class store_type>
     xzarr_hierarchy<store_type> create_zarr_hierarchy(store_type& store)
     {
@@ -114,6 +134,16 @@ namespace xt
         return h;
     }
 
+    /**
+     * Accesses a Zarr hierarchy.
+     * This function returns a ``xzarr_hierarchy`` handler to a hierarchy in a given store.
+     *
+     * @tparam store_type The type of the store (e.g. xzarr_file_system_store)
+     *
+     * @param store The hierarchy store
+     *
+     * @return returns a ``xzarr_hierarchy`` handler.
+     */
     template <class store_type>
     xzarr_hierarchy<store_type> get_zarr_hierarchy(store_type& store)
     {

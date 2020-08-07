@@ -47,11 +47,11 @@ install:
     - mkdir dev_tmp
     - cd dev_tmp
     # xtensor
-    - wget https://github.com/davidbrochart/xtensor/archive/fix_resize.tar.gz -O xtensor.tar.gz -q
+    - wget https://github.com/xtensor-stack/xtensor/archive/master.tar.gz -O xtensor.tar.gz -q
     - mkdir xtensor
     - tar zxf xtensor.tar.gz -C xtensor --strip-components 1
     # xtensor-io
-    - wget https://github.com/davidbrochart/xtensor-io/archive/io_config.tar.gz -O xtensor-io.tar.gz -q
+    - wget https://github.com/xtensor-stack/xtensor-io/archive/master.tar.gz -O xtensor-io.tar.gz -q
     - mkdir xtensor-io
     - tar zxf xtensor-io.tar.gz -C xtensor-io --strip-components 1
     # xtl

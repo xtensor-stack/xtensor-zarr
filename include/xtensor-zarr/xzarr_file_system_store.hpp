@@ -39,6 +39,15 @@ namespace xt
         std::string m_path;
     };
 
+    /**
+     * @class xzarr_file_system_store
+     * @brief Zarr store handler for a local file system.
+     *
+     * The xzarr_file_system_store class implements a handler to a Zarr store,
+     * and supports the read, write and list operations.
+     *
+     * @sa xzarr_hierarchy
+     */
     class xzarr_file_system_store
     {
     public:
@@ -151,11 +160,22 @@ namespace xt
         xzarr_file_system_stream(m_root + '/' + key) = value;
     }
 
+    /**
+     * Store a (key, value) pair.
+     * @param key the key
+     * @param value the value
+     */
     void xzarr_file_system_store::set(const std::string& key, const std::string& value)
     {
         xzarr_file_system_stream(m_root + '/' + key) = value;
     }
 
+    /**
+     * Retrieve the value associated with a given key.
+     * @param key the key to get the value from
+     *
+     * @return returns the value for the given key.
+     */
     std::string xzarr_file_system_store::get(const std::string& key)
     {
         return std::move(xzarr_file_system_stream(m_root + '/' + key));
@@ -172,6 +192,13 @@ namespace xt
         return c;
     }
 
+    /**
+     * Retrieve all keys and prefixes with a given prefix and which do not contain the character “/” after the given prefix.
+     *
+     * @param prefix the prefix
+     * @param keys set of keys to be returned by reference
+     * @param prefixes set of prefixes to be returned by reference
+     */
     void xzarr_file_system_store::list_dir(const std::string& prefix, std::vector<std::string>& keys, std::vector<std::string>& prefixes)
     {
         std::string path = m_root + '/' + prefix;
@@ -189,11 +216,23 @@ namespace xt
         }
     }
 
+    /**
+     * Retrieve all keys from the store.
+     *
+     * @return returns a set of keys.
+     */
     std::vector<std::string> xzarr_file_system_store::list()
     {
         return list_prefix("");
     }
 
+    /**
+     * Retrieve all keys with a given prefix from the store.
+     *
+     * @param prefix the prefix
+     *
+     * @return returns a set of keys with a given prefix.
+     */
     std::vector<std::string> xzarr_file_system_store::list_prefix(const std::string& prefix)
     {
         std::string path = m_root + '/' + prefix;
@@ -206,11 +245,19 @@ namespace xt
         return keys;
     }
 
+    /**
+     * Erase the given (key, value) pair from the store.
+     * @param key the key
+     */
     void xzarr_file_system_store::erase(const std::string& key)
     {
         fs::remove(m_root + '/' + key);
     }
 
+    /**
+     * Delete all the keys with the given prefix from the store.
+     * @param prefix the prefix
+     */
     void xzarr_file_system_store::delete_prefix(const std::string& prefix)
     {
         fs::remove_all(m_root + '/' + prefix);
