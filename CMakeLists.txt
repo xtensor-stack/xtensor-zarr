@@ -12,14 +12,6 @@ project(xtensor-zarr)
 
 set(XTENSOR_ZARR_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# Configuration
-# =============
-
-configure_file (
-    "${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config.hpp.in"
-    "${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config.hpp"
-)
-
 # Versionning
 # ===========
 
@@ -49,7 +41,7 @@ message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
 
 set(XTENSOR_ZARR_HEADERS
   ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor-zarr.hpp
-  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/hierarchy.hpp
+  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_hierarchy.hpp
   ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config.hpp
 )
 

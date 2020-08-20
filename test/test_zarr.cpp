@@ -10,19 +10,19 @@
 #include <vector>
 
 #include "gtest/gtest.h"
-#include "xtensor-zarr/hierarchy.hpp"
+#include "xtensor-zarr/xzarr_hierarchy.hpp"
 
 namespace fs = ghc::filesystem;
 
 namespace xt
 {
-    TEST(hierarchy, create_open)
+    TEST(xzarr_hierarchy, create_open)
     {
         std::vector<size_t> shape = {4, 4};
         std::vector<size_t> chunk_shape = {2, 2};
         nlohmann::json attrs = {{"question", "life"}, {"answer", 42}};
         const char* hier_path = "test.zr3";
-        auto h = create_hierarchy(hier_path);
+        auto h = create_zarr_hierarchy(hier_path);
         auto a1 = h.create_array<double>("/arthur/dent", shape, chunk_shape, attrs);
         double v = 3.;
         a1(2, 1) = v;
