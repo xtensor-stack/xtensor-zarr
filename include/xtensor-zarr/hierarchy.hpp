@@ -70,7 +70,7 @@ namespace xt
             o << std::setw(4) << j << std::endl;
         }
 
-        template <class value_type, class shape_type, class io_handler = xdisk_io_handler<xblosc>>
+        template <class value_type, class shape_type, class io_handler = xdisk_io_handler<xblosc_config>>
         auto create_array(const char* path, shape_type shape, shape_type chunk_shape, nlohmann::json& attrs=nlohmann::json::array())
         {
             auto meta_path = get_meta_path(m_path, path);
@@ -91,7 +91,7 @@ namespace xt
             return a;
         }
 
-        template <class value_type, class io_handler = xdisk_io_handler<xblosc>>
+        template <class value_type, class io_handler = xdisk_io_handler<xblosc_config>>
         auto
         get_array(const char* path)
         {
