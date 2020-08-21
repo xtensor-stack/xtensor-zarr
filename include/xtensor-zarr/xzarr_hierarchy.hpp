@@ -93,6 +93,12 @@ namespace xt
         j["chunk_grid"]["type"] = "regular";
         j["chunk_grid"]["chunk_shape"] = chunk_shape;
         j["attributes"] = attrs;
+        // TODO: fix hard-coded following values:
+        j["data_type"] = "<f8";
+        j["chunk_memory_layout"] = "C";
+        j["compressor"]["codec"] = "https://purl.org/zarr/spec/codec/blosc/1.0";
+        j["compressor"]["configuration"]["clevel"] = 5;
+        j["compressor"]["configuration"]["doshuffle"] = 1;
         std::ofstream stream(meta_path_array);
         stream << std::setw(4) << j << std::endl;
 

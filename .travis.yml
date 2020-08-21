@@ -33,8 +33,7 @@ install:
         export CXX=clang++ CC=clang;
       fi
     # Install host dependencies
-    #- conda create -n test nlohmann_json xtensor-io xtensor -c conda-forge
-    - conda create -n test nlohmann_json blosc xtl -c conda-forge
+    - conda create -n test nlohmann_json blosc xtl python fsspec numpy numcodecs sh -c conda-forge
     # Install build dependencies
     - conda install -n test cmake -c conda-forge
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -42,13 +41,15 @@ install:
       fi
     # Activate test environment
     - source activate test
-    # Install development versions of xtensor and xtensor-io
+    # Install development versions of xtensor, xtensor-io and zarrita
     - mkdir dev_tmp
     - cd dev_tmp
     - git clone https://github.com/xtensor-stack/xtensor.git
     - git clone https://github.com/xtensor-stack/xtensor-io.git
+    - git clone https://github.com/alimanfoo/zarrita.git
     - mv xtensor/include/xtensor $CONDA_PREFIX/include/
     - mv xtensor-io/include/xtensor-io $CONDA_PREFIX/include/
+    - mv zarrita/zarrita.py ../test
     - cd ..
     # Build
     - export LDFLAGS="${LDFLAGS} -Wl,-rpath,$CONDA_PREFIX/lib"

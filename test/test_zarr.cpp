@@ -31,4 +31,9 @@ namespace xt
         EXPECT_EQ(a2(2, 1), v);
         EXPECT_EQ(a2.attrs(), attrs);
     }
+
+    TEST(xzarr_hierarchy, zarrita_compatibility)
+    {
+        system("python ../../test/test0.py");
+    }
 }
