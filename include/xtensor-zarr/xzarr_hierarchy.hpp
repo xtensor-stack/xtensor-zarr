@@ -73,15 +73,18 @@ namespace xt
     class xzarr_hierarchy
     {
     public:
+        template <class value_type, class io_handler>
+        using xtensor_type = xchunked_array<xchunk_store_manager<xfile_array<value_type, io_handler>>, xzarr_attrs>;
+
         xzarr_hierarchy(const char* path): m_path(path) {};
 
         void create_hierarchy();
 
         template <class value_type, class shape_type, class io_handler = xdisk_io_handler<xblosc_config>>
-        auto create_array(const char* path, shape_type shape, shape_type chunk_shape, nlohmann::json& attrs=nlohmann::json::array());
+        xtensor_type<value_type, io_handler> create_array(const char* path, shape_type shape, shape_type chunk_shape, nlohmann::json& attrs=nlohmann::json::array());
 
         template <class value_type, class io_handler = xdisk_io_handler<xblosc_config>>
-        auto get_array(const char* path);
+        xtensor_type<value_type, io_handler> get_array(const char* path);
 
     private:
         fs::path m_path;
@@ -101,10 +104,8 @@ namespace xt
     }
 
     template <class value_type, class shape_type, class io_handler = xdisk_io_handler<xblosc_config>>
-    auto xzarr_hierarchy::create_array(const char* path, shape_type shape, shape_type chunk_shape, nlohmann::json& attrs)
+    xzarr_hierarchy::xtensor_type<value_type, io_handler> xzarr_hierarchy::create_array(const char* path, shape_type shape, shape_type chunk_shape, nlohmann::json& attrs)
     {
-        using xtensor_type = xchunked_array<xchunk_store_manager<xfile_array<value_type, io_handler>>, xzarr_attrs>;
-
         auto meta_path = get_meta_path(m_path, path);
         auto meta_path_array = meta_path;
         meta_path_array += ".array";
@@ -118,16 +119,14 @@ namespace xt
         std::ofstream stream(meta_path_array);
         stream << std::setw(4) << j << std::endl;
 
-        xtensor_type a(shape, chunk_shape);
+        xtensor_type<value_type, io_handler> a(shape, chunk_shape);
         a.chunks().set_directory(data_path.string().c_str());
         return a;
     }
 
     template <class value_type, class io_handler = xdisk_io_handler<xblosc_config>>
-    auto xzarr_hierarchy::get_array(const char* path)
+    xzarr_hierarchy::xtensor_type<value_type, io_handler> xzarr_hierarchy::get_array(const char* path)
     {
-        using xtensor_type = xchunked_array<xchunk_store_manager<xfile_array<value_type, io_handler>>, xzarr_attrs>;
-
         auto meta_path = get_meta_path(m_path, path);
         auto meta_path_array = meta_path;
         meta_path_array += ".array";
@@ -149,7 +148,7 @@ namespace xt
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
         std::transform(json_chunk_shape.begin(), json_chunk_shape.end(), chunk_shape.begin(),
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
-        xtensor_type a(shape, chunk_shape);
+        xtensor_type<value_type, io_handler> a(shape, chunk_shape);
         a.chunks().set_directory(data_path.string().c_str());
         a.set_attrs(j["attributes"]);
         return a;
