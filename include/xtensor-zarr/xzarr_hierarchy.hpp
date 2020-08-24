@@ -21,12 +21,32 @@
 #include "xtensor/xfile_array.hpp"
 #include "xtensor/xdisk_io_handler.hpp"
 #include "xtensor-io/xblosc.hpp"
-#include "xzarr_attrs.hpp"
 
 namespace fs = ghc::filesystem;
 
 namespace xt
 {
+    // xzarr_attrs is meant to serve as a base class extension for xchunked_array
+    // it provides JSON attribute getter and setter methods
+    class xzarr_attrs
+    {
+    public:
+        nlohmann::json attrs();
+        void set_attrs(nlohmann::json& attrs);
+
+    private:
+        nlohmann::json m_attrs;
+    };
+
+    nlohmann::json xzarr_attrs::attrs()
+    {
+        return m_attrs;
+    }
+
+    void xzarr_attrs::set_attrs(nlohmann::json& attrs)
+    {
+        m_attrs = attrs;
+    }
 
     fs::path get_meta_path(fs::path& hier_path, const char* array_path)
     {
@@ -83,6 +103,8 @@ namespace xt
     template <class value_type, class shape_type, class io_handler = xdisk_io_handler<xblosc_config>>
     auto xzarr_hierarchy::create_array(const char* path, shape_type shape, shape_type chunk_shape, nlohmann::json& attrs)
     {
+        using xtensor_type = xchunked_array<xchunk_store_manager<xfile_array<value_type, io_handler>>, xzarr_attrs>;
+
         auto meta_path = get_meta_path(m_path, path);
         auto meta_path_array = meta_path;
         meta_path_array += ".array";
@@ -96,7 +118,7 @@ namespace xt
         std::ofstream stream(meta_path_array);
         stream << std::setw(4) << j << std::endl;
 
-        xchunked_array<xchunk_store_manager<xfile_array<value_type, io_handler>>, xzarr_attrs> a(shape, chunk_shape);
+        xtensor_type a(shape, chunk_shape);
         a.chunks().set_directory(data_path.string().c_str());
         return a;
     }
@@ -104,7 +126,8 @@ namespace xt
     template <class value_type, class io_handler = xdisk_io_handler<xblosc_config>>
     auto xzarr_hierarchy::get_array(const char* path)
     {
-        int i;
+        using xtensor_type = xchunked_array<xchunk_store_manager<xfile_array<value_type, io_handler>>, xzarr_attrs>;
+
         auto meta_path = get_meta_path(m_path, path);
         auto meta_path_array = meta_path;
         meta_path_array += ".array";
@@ -122,19 +145,11 @@ namespace xt
         auto json_chunk_shape = j["chunk_grid"]["chunk_shape"];
         std::vector<std::size_t> shape(json_shape.size());
         std::vector<std::size_t> chunk_shape(json_chunk_shape.size());
-        i = 0;
-        for (auto size: json_shape)
-        {
-            shape[i] = stoi(size.dump(), nullptr);
-            i++;
-        }
-        i = 0;
-        for (auto size: json_chunk_shape)
-        {
-            chunk_shape[i] = stoi(size.dump(), nullptr);
-            i++;
-        }
-        xchunked_array<xchunk_store_manager<xfile_array<value_type, io_handler>>, xzarr_attrs> a(shape, chunk_shape);
+        std::transform(json_shape.begin(), json_shape.end(), shape.begin(),
+                       [](nlohmann::json& size) -> int { return stoi(size.dump()); });
+        std::transform(json_chunk_shape.begin(), json_chunk_shape.end(), chunk_shape.begin(),
+                       [](nlohmann::json& size) -> int { return stoi(size.dump()); });
+        xtensor_type a(shape, chunk_shape);
         a.chunks().set_directory(data_path.string().c_str());
         a.set_attrs(j["attributes"]);
         return a;
