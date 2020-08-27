@@ -33,8 +33,7 @@ install:
         export CXX=clang++ CC=clang;
       fi
     # Install host dependencies
-    #- conda create -n test nlohmann_json xtensor-io xtensor -c conda-forge
-    - conda create -n test nlohmann_json blosc xtl -c conda-forge
+    - conda create -n test nlohmann_json cpp-filesystem blosc xtl -c conda-forge
     # Install build dependencies
     - conda install -n test cmake -c conda-forge
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then

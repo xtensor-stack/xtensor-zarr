@@ -15,7 +15,7 @@
 #include <iostream>
 
 #include "nlohmann/json.hpp"
-#include "thirdparty/filesystem.hpp"
+#include "ghc/filesystem.hpp"
 #include "xtensor/xchunked_array.hpp"
 #include "xtensor/xchunk_store_manager.hpp"
 #include "xtensor/xfile_array.hpp"
