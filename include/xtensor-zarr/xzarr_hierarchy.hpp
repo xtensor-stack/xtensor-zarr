@@ -26,6 +26,24 @@ namespace fs = ghc::filesystem;
 
 namespace xt
 {
+    /********************************
+     * xzarr_index_path declaration *
+     ********************************/
+
+    class xzarr_index_path
+    {
+    public:
+        xzarr_index_path();
+
+        void set_directory(const char* directory);
+        void set_separator(const char separator);
+        void index_to_path(const std::vector<std::size_t>&, std::string&);
+
+    private:
+        std::string m_directory;
+        char m_separator;
+    };
+
     // xzarr_attrs is meant to serve as a base class extension for xchunked_array
     // it provides JSON attribute getter and setter methods
     class xzarr_attrs
@@ -37,6 +55,60 @@ namespace xt
     private:
         nlohmann::json m_attrs;
     };
+
+    /******************************
+     * xindex_path implementation *
+     ******************************/
+
+    xzarr_index_path::xzarr_index_path(): m_separator('/')
+    {
+    }
+
+    void xzarr_index_path::set_directory(const char* directory)
+    {
+        m_directory = directory;
+        if (m_directory.back() != '/')
+        {
+            m_directory.push_back('/');
+        }
+    }
+
+    void xzarr_index_path::set_separator(const char separator)
+    {
+        m_separator = separator;
+    }
+
+    void xzarr_index_path::index_to_path(const std::vector<std::size_t>& index, std::string& path)
+    {
+        std::string fname;
+        for (auto idx: index)
+        {
+            if (!fname.empty())
+            {
+                fname.push_back(m_separator);
+            }
+            fname.append(std::to_string(idx));
+        }
+        path = m_directory + fname;
+
+        // maybe create directories
+        std::size_t i = path.rfind('/');
+        if (i != std::string::npos)
+        {
+            fs::path directory = path.substr(0, i);
+            if (fs::exists(directory))
+            {
+                if (!fs::is_directory(directory))
+                {
+                    XTENSOR_THROW(std::runtime_error, "in zarr index to path transformation, this path is not a directory: " + std::string(directory));
+                }
+            }
+            else
+            {
+                fs::create_directories(directory);
+            }
+        }
+    }
 
     nlohmann::json xzarr_attrs::attrs()
     {
@@ -74,7 +146,7 @@ namespace xt
     {
     public:
         template <class value_type, class io_handler>
-        using tensor_type = xchunked_array<xchunk_store_manager<xfile_array<value_type, io_handler>>, xzarr_attrs>;
+        using tensor_type = xchunked_array<xchunk_store_manager<xfile_array<value_type, io_handler>, xzarr_index_path>, xzarr_attrs>;
 
         xzarr_hierarchy(const char* path): m_path(path) {};
 
@@ -121,6 +193,7 @@ namespace xt
 
         tensor_type<value_type, io_handler> a(shape, chunk_shape);
         a.chunks().set_directory(data_path.string().c_str());
+        a.chunks().get_index_path().set_separator('.');
         return a;
     }
 
@@ -150,6 +223,7 @@ namespace xt
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
         tensor_type<value_type, io_handler> a(shape, chunk_shape);
         a.chunks().set_directory(data_path.string().c_str());
+        a.chunks().get_index_path().set_separator('.');
         a.set_attrs(j["attributes"]);
         return a;
     }
