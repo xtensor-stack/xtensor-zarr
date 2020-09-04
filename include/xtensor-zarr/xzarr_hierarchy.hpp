@@ -220,16 +220,14 @@ namespace xt
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
         std::transform(json_chunk_shape.begin(), json_chunk_shape.end(), chunk_shape.begin(),
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
-        zarray z;
         if (true)  // TODO: instantiate the right tensor_type depending on data type, compressor...
         {
             tensor_type<double, xdisk_io_handler<xblosc_config>> a(shape, chunk_shape);
             a.chunks().set_directory(data_path.string().c_str());
             a.chunks().get_index_path().set_separator('.');
             a.set_attrs(j["attributes"]);
-            z = a;
+            return zarray(a);
         }
-        return z;
     }
 
     xzarr_hierarchy create_zarr_hierarchy(const char* path)
