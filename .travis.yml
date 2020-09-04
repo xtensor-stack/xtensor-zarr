@@ -44,7 +44,7 @@ install:
     # Install development versions of xtensor and xtensor-io
     - mkdir dev_tmp
     - cd dev_tmp
-    - git clone --single-branch --branch chunk_separator https://github.com/davidbrochart/xtensor.git
+    - git clone --single-branch --branch zarray https://github.com/davidbrochart/xtensor.git
     - git clone https://github.com/xtensor-stack/xtensor-io.git
     - mv xtensor/include/xtensor $CONDA_PREFIX/include/
     - mv xtensor-io/include/xtensor-io $CONDA_PREFIX/include/

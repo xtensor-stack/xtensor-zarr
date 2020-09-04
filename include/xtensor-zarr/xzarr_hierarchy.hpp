@@ -16,6 +16,7 @@
 
 #include "nlohmann/json.hpp"
 #include "ghc/filesystem.hpp"
+#include "xtensor/zarray.hpp"
 #include "xtensor/xchunked_array.hpp"
 #include "xtensor/xchunk_store_manager.hpp"
 #include "xtensor/xfile_array.hpp"
@@ -155,8 +156,7 @@ namespace xt
         template <class value_type, class shape_type, class io_handler = xdisk_io_handler<xblosc_config>>
         tensor_type<value_type, io_handler> create_array(const char* path, shape_type shape, shape_type chunk_shape, nlohmann::json& attrs=nlohmann::json::array());
 
-        template <class value_type, class io_handler = xdisk_io_handler<xblosc_config>>
-        tensor_type<value_type, io_handler> get_array(const char* path);
+        zarray get_array(const char* path);
 
     private:
         fs::path m_path;
@@ -197,8 +197,7 @@ namespace xt
         return a;
     }
 
-    template <class value_type, class io_handler = xdisk_io_handler<xblosc_config>>
-    xzarr_hierarchy::tensor_type<value_type, io_handler> xzarr_hierarchy::get_array(const char* path)
+    zarray xzarr_hierarchy::get_array(const char* path)
     {
         auto meta_path = get_meta_path(m_path, path);
         auto meta_path_array = meta_path;
@@ -221,11 +220,16 @@ namespace xt
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
         std::transform(json_chunk_shape.begin(), json_chunk_shape.end(), chunk_shape.begin(),
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
-        tensor_type<value_type, io_handler> a(shape, chunk_shape);
-        a.chunks().set_directory(data_path.string().c_str());
-        a.chunks().get_index_path().set_separator('.');
-        a.set_attrs(j["attributes"]);
-        return a;
+        zarray z;
+        if (true)  // TODO: instantiate the right tensor_type depending on data type, compressor...
+        {
+            tensor_type<double, xdisk_io_handler<xblosc_config>> a(shape, chunk_shape);
+            a.chunks().set_directory(data_path.string().c_str());
+            a.chunks().get_index_path().set_separator('.');
+            a.set_attrs(j["attributes"]);
+            z = a;
+        }
+        return z;
     }
 
     xzarr_hierarchy create_zarr_hierarchy(const char* path)
