@@ -38,7 +38,8 @@ namespace xt
 
         void set_directory(const char* directory);
         void set_separator(const char separator);
-        void index_to_path(const std::vector<std::size_t>&, std::string&);
+        template <class I>
+        void index_to_path(I first, I last, std::string& path);
 
     private:
         std::string m_directory;
@@ -79,16 +80,17 @@ namespace xt
         m_separator = separator;
     }
 
-    void xzarr_index_path::index_to_path(const std::vector<std::size_t>& index, std::string& path)
+    template <class I>
+    void xzarr_index_path::index_to_path(I first, I last, std::string& path)
     {
         std::string fname;
-        for (auto idx: index)
+        for (auto it = first; it != last; ++it)
         {
             if (!fname.empty())
             {
                 fname.push_back(m_separator);
             }
-            fname.append(std::to_string(idx));
+            fname.append(std::to_string(*it));
         }
         path = m_directory + fname;
 
