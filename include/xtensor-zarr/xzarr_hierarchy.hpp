@@ -21,7 +21,7 @@
 #include "xtensor/xchunk_store_manager.hpp"
 #include "xtensor/xfile_array.hpp"
 #include "xtensor/xdisk_io_handler.hpp"
-#include "xtensor-io/xblosc.hpp"
+#include "xtensor-io/xgzip.hpp"
 
 namespace fs = ghc::filesystem;
 
@@ -155,7 +155,7 @@ namespace xt
 
         void create_hierarchy();
 
-        template <class value_type, class shape_type, class io_handler = xdisk_io_handler<xblosc_config>>
+        template <class value_type, class shape_type, class io_handler = xdisk_io_handler<xgzip_config>>
         tensor_type<value_type, io_handler> create_array(const char* path, shape_type shape, shape_type chunk_shape, nlohmann::json& attrs=nlohmann::json::array());
 
         zarray get_array(const char* path);
@@ -177,7 +177,7 @@ namespace xt
         o << std::setw(4) << j << std::endl;
     }
 
-    template <class value_type, class shape_type, class io_handler = xdisk_io_handler<xblosc_config>>
+    template <class value_type, class shape_type, class io_handler = xdisk_io_handler<xgzip_config>>
     xzarr_hierarchy::tensor_type<value_type, io_handler> xzarr_hierarchy::create_array(const char* path, shape_type shape, shape_type chunk_shape, nlohmann::json& attrs)
     {
         auto meta_path = get_meta_path(m_path, path);
@@ -190,6 +190,13 @@ namespace xt
         j["chunk_grid"]["type"] = "regular";
         j["chunk_grid"]["chunk_shape"] = chunk_shape;
         j["attributes"] = attrs;
+        // TODO: fix hard-coded following values:
+        j["data_type"] = "<f8";
+        j["chunk_memory_layout"] = "C";
+        j["compressor"]["codec"] = "https://purl.org/zarr/spec/codec/gzip/1.0";
+        j["compressor"]["configuration"]["level"] = 1;
+        j["fill_value"] = nlohmann::json();
+        j["extensions"] = nlohmann::json::array();
         std::ofstream stream(meta_path_array);
         stream << std::setw(4) << j << std::endl;
 
@@ -209,7 +216,7 @@ namespace xt
         std::ifstream stream(meta_path_array);
         std::string s;
         stream.seekg(0, stream.end);
-        s.reserve(stream.tellg());
+        s.reserve((std::size_t)stream.tellg());
         stream.seekg(0, stream.beg);
         s.assign((std::istreambuf_iterator<char>(stream)),
                   std::istreambuf_iterator<char>());
@@ -224,7 +231,7 @@ namespace xt
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
         if (true)  // TODO: instantiate the right tensor_type depending on data type, compressor...
         {
-            tensor_type<double, xdisk_io_handler<xblosc_config>> a(shape, chunk_shape);
+            tensor_type<double, xdisk_io_handler<xgzip_config>> a(shape, chunk_shape);
             a.chunks().set_directory(data_path.string().c_str());
             a.chunks().get_index_path().set_separator('.');
             a.set_attrs(j["attributes"]);

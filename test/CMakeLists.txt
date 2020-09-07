@@ -94,6 +94,12 @@ set_target_properties(blosc PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES "$ENV{CONDA_PREFIX}/include/"
 )
 
+add_library(zlib SHARED IMPORTED)
+set_target_properties(zlib PROPERTIES
+  IMPORTED_LOCATION "$ENV{CONDA_PREFIX}/lib/libz.so"
+  INTERFACE_INCLUDE_DIRECTORIES "$ENV{CONDA_PREFIX}/include/"
+)
+
 add_executable(test_xtensor_zarr ${XTENSOR_ZARR_TESTS} ${XTENSOR_ZARR_HEADERS})
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     add_dependencies(test_xtensor_zarr gtest_main)
@@ -111,6 +117,7 @@ target_link_libraries(test_xtensor_zarr
   PUBLIC
     xtensor-zarr
     blosc
+    z
     ${CMAKE_DL_LIBS}
     ${GTEST_BOTH_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
