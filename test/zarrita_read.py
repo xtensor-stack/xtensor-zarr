@@ -2,7 +2,7 @@ import zarrita
 import numpy as np
 from numcodecs import GZip
 
-h = zarrita.get_hierarchy('test.zr3')
+h = zarrita.get_hierarchy('h_xtensor.zr3')
 a = h['arthur/dent']
 a_ref = np.zeros((4, 4))
 a_ref[2, 1] = 3

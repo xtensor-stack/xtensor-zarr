@@ -60,4 +60,6 @@ install:
     - make -j2 test_xtensor_zarr
     - cd test
 script:
+    - python ../../test/zarrita_write.py
     - ./test_xtensor_zarr
+    - python ../../test/zarrita_read.py
