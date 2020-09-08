@@ -10,6 +10,8 @@
 #include <vector>
 
 #include "gtest/gtest.h"
+
+#include "xtensor-io/xgzip.hpp"
 #include "xtensor-zarr/xzarr_hierarchy.hpp"
 
 namespace fs = ghc::filesystem;
@@ -31,12 +33,13 @@ namespace xt
         nlohmann::json attrs = {{"question", "life"}, {"answer", 42}};
         const char* hier_path = "h_xtensor.zr3";
         auto h = create_zarr_hierarchy(hier_path);
-        auto a1 = h.create_array<double>("/arthur/dent", shape, chunk_shape, attrs);
-        double v = 3.;
-        a1(2, 1) = v;
+        zarray z1 = h.create_array("/arthur/dent", shape, chunk_shape, "float64", xgzip_config(), attrs);
+        //auto a1 = z1.get_array<double>();
+        //double v = 3.;
+        //a1(2, 1) = v;
         //a1.chunks().flush();
-        //zarray z = h.get_array("/arthur/dent");
-        //xchunked_array<> a2 = z.get_chunked_array<>();
+        //zarray z2 = h.get_array("/arthur/dent");
+        //xarray<double> a2 = z2.get_array<double>();
         //EXPECT_EQ(a2(2, 1), v);
         //EXPECT_EQ(a2.attrs(), attrs);
     }

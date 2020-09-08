@@ -154,10 +154,8 @@ namespace xt
         xzarr_hierarchy(const char* path): m_path(path) {};
 
         void create_hierarchy();
-
-        template <class value_type, class shape_type, class io_handler = xdisk_io_handler<xgzip_config>>
-        tensor_type<value_type, io_handler> create_array(const char* path, shape_type shape, shape_type chunk_shape, nlohmann::json& attrs=nlohmann::json::array());
-
+        template <class shape_type, class C>
+        zarray create_array(const char* path, shape_type shape, shape_type chunk_shape, const char* dtype, C compressor, nlohmann::json& attrs=nlohmann::json::array());
         zarray get_array(const char* path);
 
     private:
@@ -177,8 +175,8 @@ namespace xt
         o << std::setw(4) << j << std::endl;
     }
 
-    template <class value_type, class shape_type, class io_handler = xdisk_io_handler<xgzip_config>>
-    xzarr_hierarchy::tensor_type<value_type, io_handler> xzarr_hierarchy::create_array(const char* path, shape_type shape, shape_type chunk_shape, nlohmann::json& attrs)
+    template <class shape_type, class C>
+    zarray xzarr_hierarchy::create_array(const char* path, shape_type shape, shape_type chunk_shape, const char* dtype, C compressor, nlohmann::json& attrs)
     {
         auto meta_path = get_meta_path(m_path, path);
         auto meta_path_array = meta_path;
@@ -191,7 +189,7 @@ namespace xt
         j["chunk_grid"]["chunk_shape"] = chunk_shape;
         j["attributes"] = attrs;
         // TODO: fix hard-coded following values:
-        j["data_type"] = "<f8";
+        j["data_type"] = dtype;
         j["chunk_memory_layout"] = "C";
         j["compressor"]["codec"] = "https://purl.org/zarr/spec/codec/gzip/1.0";
         j["compressor"]["configuration"]["level"] = 1;
@@ -200,10 +198,14 @@ namespace xt
         std::ofstream stream(meta_path_array);
         stream << std::setw(4) << j << std::endl;
 
-        tensor_type<value_type, io_handler> a(shape, chunk_shape);
-        a.chunks().set_directory(data_path.string().c_str());
-        a.chunks().get_index_path().set_separator('.');
-        return a;
+        if (true)  // TODO: instantiate the right tensor_type depending on data type, compressor...
+        {
+            tensor_type<double, xdisk_io_handler<xgzip_config>> a(shape, chunk_shape);
+            a.chunks().set_directory(data_path.string().c_str());
+            a.chunks().get_index_path().set_separator('.');
+            a.set_attrs(attrs);
+            return zarray(a);
+        }
     }
 
     zarray xzarr_hierarchy::get_array(const char* path)
