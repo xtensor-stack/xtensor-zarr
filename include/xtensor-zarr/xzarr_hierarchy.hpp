@@ -155,7 +155,7 @@ namespace xt
 
         void create_hierarchy();
         template <class shape_type, class C>
-        zarray create_array(const char* path, shape_type shape, shape_type chunk_shape, const char* dtype, C compressor, nlohmann::json& attrs=nlohmann::json::array());
+        zarray create_array(const char* path, shape_type shape, shape_type chunk_shape, const char* dtype, const C& compressor, nlohmann::json& attrs=nlohmann::json::array());
         zarray get_array(const char* path);
 
     private:
@@ -176,7 +176,7 @@ namespace xt
     }
 
     template <class shape_type, class C>
-    zarray xzarr_hierarchy::create_array(const char* path, shape_type shape, shape_type chunk_shape, const char* dtype, C compressor, nlohmann::json& attrs)
+    zarray xzarr_hierarchy::create_array(const char* path, shape_type shape, shape_type chunk_shape, const char* dtype, const C& compressor, nlohmann::json& attrs)
     {
         auto meta_path = get_meta_path(m_path, path);
         auto meta_path_array = meta_path;
@@ -191,8 +191,11 @@ namespace xt
         // TODO: fix hard-coded following values:
         j["data_type"] = dtype;
         j["chunk_memory_layout"] = "C";
-        j["compressor"]["codec"] = "https://purl.org/zarr/spec/codec/gzip/1.0";
-        j["compressor"]["configuration"]["level"] = 1;
+        j["compressor"]["codec"] = std::string("https://purl.org/zarr/spec/codec/") + compressor.name + "/" + compressor.version;
+        if (strcmp(compressor.name, "gzip") == 0)
+        {
+            j["compressor"]["configuration"]["level"] = compressor.level;
+        }
         j["fill_value"] = nlohmann::json();
         j["extensions"] = nlohmann::json::array();
         std::ofstream stream(meta_path_array);
