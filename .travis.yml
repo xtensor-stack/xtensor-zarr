@@ -45,7 +45,7 @@ install:
     - mkdir dev_tmp
     - cd dev_tmp
     - git clone --single-branch --branch zarray https://github.com/davidbrochart/xtensor.git
-    - git clone --single-branch --branch format_id https://github.com/davidbrochart/xtensor-io.git
+    - git clone --single-branch --branch write_json https://github.com/davidbrochart/xtensor-io.git
     - git clone --single-branch --branch codec https://github.com/davidbrochart/zarrita.git
     - mv xtensor/include/xtensor $CONDA_PREFIX/include/
     - mv xtensor-io/include/xtensor-io $CONDA_PREFIX/include/

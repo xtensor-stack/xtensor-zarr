@@ -21,7 +21,7 @@
 #include "xtensor/xchunk_store_manager.hpp"
 #include "xtensor/xfile_array.hpp"
 #include "xtensor/xdisk_io_handler.hpp"
-#include "xtensor-io/xgzip.hpp"
+#include "xtensor-io/xio_binary.hpp"
 
 namespace fs = ghc::filesystem;
 
@@ -52,7 +52,7 @@ namespace xt
     {
     public:
         nlohmann::json attrs();
-        void set_attrs(nlohmann::json& attrs);
+        void set_attrs(const nlohmann::json& attrs);
 
     private:
         nlohmann::json m_attrs;
@@ -118,7 +118,7 @@ namespace xt
         return m_attrs;
     }
 
-    void xzarr_attrs::set_attrs(nlohmann::json& attrs)
+    void xzarr_attrs::set_attrs(const nlohmann::json& attrs)
     {
         m_attrs = attrs;
     }
@@ -155,7 +155,7 @@ namespace xt
 
         void create_hierarchy();
         template <class shape_type, class C>
-        zarray create_array(const char* path, shape_type shape, shape_type chunk_shape, const char* dtype, const C& compressor, nlohmann::json& attrs=nlohmann::json::array());
+        zarray create_array(const char* path, shape_type shape, shape_type chunk_shape, const char* dtype, const C& compressor, const nlohmann::json& attrs=nlohmann::json::array());
         zarray get_array(const char* path);
 
     private:
@@ -176,7 +176,7 @@ namespace xt
     }
 
     template <class shape_type, class C>
-    zarray xzarr_hierarchy::create_array(const char* path, shape_type shape, shape_type chunk_shape, const char* dtype, const C& compressor, nlohmann::json& attrs)
+    zarray xzarr_hierarchy::create_array(const char* path, shape_type shape, shape_type chunk_shape, const char* dtype, const C& compressor, const nlohmann::json& attrs)
     {
         auto meta_path = get_meta_path(m_path, path);
         auto meta_path_array = meta_path;
@@ -192,10 +192,7 @@ namespace xt
         j["data_type"] = dtype;
         j["chunk_memory_layout"] = "C";
         j["compressor"]["codec"] = std::string("https://purl.org/zarr/spec/codec/") + compressor.name + "/" + compressor.version;
-        if (strcmp(compressor.name, "gzip") == 0)
-        {
-            j["compressor"]["configuration"]["level"] = compressor.level;
-        }
+        compressor.write(j["compressor"]["configuration"]);
         j["fill_value"] = nlohmann::json();
         j["extensions"] = nlohmann::json::array();
         std::ofstream stream(meta_path_array);
@@ -203,7 +200,7 @@ namespace xt
 
         if (true)  // TODO: instantiate the right tensor_type depending on data type, compressor...
         {
-            tensor_type<double, xdisk_io_handler<xgzip_config>> a(shape, chunk_shape);
+            tensor_type<double, xdisk_io_handler<xio_binary_config>> a(shape, chunk_shape);
             a.chunks().set_directory(data_path.string().c_str());
             a.chunks().get_index_path().set_separator('.');
             a.set_attrs(attrs);
@@ -236,7 +233,7 @@ namespace xt
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
         if (true)  // TODO: instantiate the right tensor_type depending on data type, compressor...
         {
-            tensor_type<double, xdisk_io_handler<xgzip_config>> a(shape, chunk_shape);
+            tensor_type<double, xdisk_io_handler<xio_binary_config>> a(shape, chunk_shape);
             a.chunks().set_directory(data_path.string().c_str());
             a.chunks().get_index_path().set_separator('.');
             a.set_attrs(j["attributes"]);
