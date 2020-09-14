@@ -7,23 +7,15 @@
 * The full license is in the file LICENSE, distributed with this software. *
 ****************************************************************************/
 
-#ifndef XTENSOR_ZARR_XZARR_HIERARCHY_HPP
-#define XTENSOR_ZARR_XZARR_HIERARCHY_HPP
-
-#include <iomanip>
-#include <fstream>
-#include <iostream>
+#ifndef XTENSOR_ZARR_HIERARCHY_HPP
+#define XTENSOR_ZARR_HIERARCHY_HPP
 
 #include "nlohmann/json.hpp"
-#include "ghc/filesystem.hpp"
 #include "xtensor/zarray.hpp"
 #include "xtensor/xchunked_array.hpp"
 #include "xtensor/xchunk_store_manager.hpp"
 #include "xtensor/xfile_array.hpp"
-#include "xtensor/xdisk_io_handler.hpp"
 #include "xtensor-io/xio_binary.hpp"
-
-namespace fs = ghc::filesystem;
 
 namespace xt
 {
@@ -93,24 +85,6 @@ namespace xt
             fname.append(std::to_string(*it));
         }
         path = m_directory + fname;
-
-        // maybe create directories
-        std::size_t i = path.rfind('/');
-        if (i != std::string::npos)
-        {
-            fs::path directory = path.substr(0, i);
-            if (fs::exists(directory))
-            {
-                if (!fs::is_directory(directory))
-                {
-                    XTENSOR_THROW(std::runtime_error, "in zarr index to path transformation, this path is not a directory: " + std::string(directory));
-                }
-            }
-            else
-            {
-                fs::create_directories(directory);
-            }
-        }
     }
 
     nlohmann::json xzarr_attrs::attrs()
@@ -123,66 +97,49 @@ namespace xt
         m_attrs = attrs;
     }
 
-    fs::path get_meta_path(fs::path& hier_path, const char* array_path)
-    {
-        while (*array_path == '/')
-        {
-            array_path++;
-        }
-        auto meta_path = hier_path / "meta" / "root" / array_path;
-        fs::create_directories(meta_path.parent_path());
-        return meta_path;
-    }
-
-    fs::path get_data_path(fs::path& hier_path, const char* array_path)
-    {
-        while (*array_path == '/')
-        {
-            array_path++;
-        }
-        auto data_path = hier_path / "data" / array_path;
-        fs::create_directories(data_path);
-        return data_path;
-    }
-
+    template <class store_type>
     class xzarr_hierarchy
     {
     public:
         template <class value_type, class io_handler>
         using tensor_type = xchunked_array<xchunk_store_manager<xfile_array<value_type, io_handler>, xzarr_index_path>, xzarr_attrs>;
 
-        xzarr_hierarchy(const char* path): m_path(path) {};
+        xzarr_hierarchy(store_type& store);
 
         void create_hierarchy();
+
         template <class shape_type, class C>
         zarray create_array(const char* path, shape_type shape, shape_type chunk_shape, const char* dtype, const C& compressor, const nlohmann::json& attrs=nlohmann::json::array());
+
         zarray get_array(const char* path);
 
     private:
-        fs::path m_path;
+        zarray get_zarray(const char* path);
+
+        store_type& m_store;
     };
 
-    void xzarr_hierarchy::create_hierarchy()
+    template <class store_type>
+    xzarr_hierarchy<store_type>::xzarr_hierarchy(store_type& store)
+        : m_store(store)
+    {
+    }
+
+    template <class store_type>
+    void xzarr_hierarchy<store_type>::create_hierarchy()
     {
         nlohmann::json j;
         j["zarr_format"] = "https://purl.org/zarr/spec/protocol/core/3.0";
         j["metadata_encoding"] = "application/json";
         j["extensions"] = nlohmann::json::array();
 
-        fs::create_directories(m_path);
-        auto zarr_json = m_path / "zarr.json";
-        std::ofstream o(zarr_json.string());
-        o << std::setw(4) << j << std::endl;
+        m_store["zarr.json"] = j.dump(4);
     }
 
+    template <class store_type>
     template <class shape_type, class C>
-    zarray xzarr_hierarchy::create_array(const char* path, shape_type shape, shape_type chunk_shape, const char* dtype, const C& compressor, const nlohmann::json& attrs)
+    zarray xzarr_hierarchy<store_type>::create_array(const char* path, shape_type shape, shape_type chunk_shape, const char* dtype, const C& compressor, const nlohmann::json& attrs)
     {
-        auto meta_path = get_meta_path(m_path, path);
-        auto meta_path_array = meta_path;
-        meta_path_array += ".array";
-        auto data_path = get_data_path(m_path, path);
-
         nlohmann::json j;
         j["shape"] = shape;
         j["chunk_grid"]["type"] = "regular";
@@ -195,62 +152,58 @@ namespace xt
         compressor.write(j["compressor"]["configuration"]);
         j["fill_value"] = nlohmann::json();
         j["extensions"] = nlohmann::json::array();
-        std::ofstream stream(meta_path_array);
-        stream << std::setw(4) << j << std::endl;
+        m_store[std::string("meta/root") + path + ".array"] = j.dump(4);
 
-        if (true)  // TODO: instantiate the right tensor_type depending on data type, compressor...
+        if (strcmp(dtype, "float64") == 0)
         {
-            tensor_type<double, xdisk_io_handler<xio_binary_config>> a(shape, chunk_shape);
-            a.chunks().set_directory(data_path.string().c_str());
+            using io_handler = typename store_type::template io_handler<C>;
+            tensor_type<double, io_handler> a(shape, chunk_shape);
+            a.chunks().set_directory((m_store.get_root() + "data/root" + path).c_str());
             a.chunks().get_index_path().set_separator('.');
             a.set_attrs(attrs);
             return zarray(a);
         }
+        return zarray();
     }
 
-    zarray xzarr_hierarchy::get_array(const char* path)
+    template <class store_type>
+    zarray xzarr_hierarchy<store_type>::get_array(const char* path)
     {
-        auto meta_path = get_meta_path(m_path, path);
-        auto meta_path_array = meta_path;
-        meta_path_array += ".array";
-        auto data_path = get_data_path(m_path, path);
-
-        std::ifstream stream(meta_path_array);
-        std::string s;
-        stream.seekg(0, stream.end);
-        s.reserve((std::size_t)stream.tellg());
-        stream.seekg(0, stream.beg);
-        s.assign((std::istreambuf_iterator<char>(stream)),
-                  std::istreambuf_iterator<char>());
-        auto j = nlohmann::json::parse(s);
+        std::vector<char> s = m_store[std::string("meta/root") + path + ".array"];
+        auto j = nlohmann::json::parse(s.data());
         auto json_shape = j["shape"];
         auto json_chunk_shape = j["chunk_grid"]["chunk_shape"];
+        std::string dtype = j["data_type"];
         std::vector<std::size_t> shape(json_shape.size());
         std::vector<std::size_t> chunk_shape(json_chunk_shape.size());
         std::transform(json_shape.begin(), json_shape.end(), shape.begin(),
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
         std::transform(json_chunk_shape.begin(), json_chunk_shape.end(), chunk_shape.begin(),
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
-        if (true)  // TODO: instantiate the right tensor_type depending on data type, compressor...
+        if (dtype == "float64")
         {
-            tensor_type<double, xdisk_io_handler<xio_binary_config>> a(shape, chunk_shape);
-            a.chunks().set_directory(data_path.string().c_str());
+            using io_handler = typename store_type::template io_handler<xio_binary_config>;
+            tensor_type<double, io_handler> a(shape, chunk_shape);
+            a.chunks().set_directory((m_store.get_root() + "data/root" + path).c_str());
             a.chunks().get_index_path().set_separator('.');
             a.set_attrs(j["attributes"]);
             return zarray(a);
         }
+        return zarray();
     }
 
-    xzarr_hierarchy create_zarr_hierarchy(const char* path)
+    template <class store_type>
+    xzarr_hierarchy<store_type> create_zarr_hierarchy(store_type& store)
     {
-        xzarr_hierarchy h(path);
+        xzarr_hierarchy<store_type> h(store);
         h.create_hierarchy();
         return h;
     }
 
-    xzarr_hierarchy get_zarr_hierarchy(const char* path)
+    template <class store_type>
+    xzarr_hierarchy<store_type> get_zarr_hierarchy(store_type& store)
     {
-        xzarr_hierarchy h(path);
+        xzarr_hierarchy<store_type> h(store);
         return h;
     }
 }

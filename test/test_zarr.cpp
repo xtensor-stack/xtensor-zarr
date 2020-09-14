@@ -13,14 +13,14 @@
 
 #include "xtensor-io/xio_binary.hpp"
 #include "xtensor-zarr/xzarr_hierarchy.hpp"
-
-namespace fs = ghc::filesystem;
+#include "xtensor-zarr/xzarr_file_system_store.hpp"
 
 namespace xt
 {
     TEST(xzarr_hierarchy, read_array)
     {
-        auto h = get_zarr_hierarchy("h_zarrita.zr3");
+        xzarr_file_system_store s("h_zarrita.zr3");
+        auto h = get_zarr_hierarchy(s);
         zarray z = h.get_array("/arthur/dent");
         //auto a = xt::arange(5 * 10).reshape({5, 10});
         //EXPECT_EQ(a, z.get_array<double>());
@@ -31,8 +31,8 @@ namespace xt
         std::vector<size_t> shape = {4, 4};
         std::vector<size_t> chunk_shape = {2, 2};
         nlohmann::json attrs = {{"question", "life"}, {"answer", 42}};
-        const char* hier_path = "h_xtensor.zr3";
-        auto h = create_zarr_hierarchy(hier_path);
+        xzarr_file_system_store s("h_xtensor.zr3");
+        auto h = create_zarr_hierarchy(s);
         zarray z1 = h.create_array("/arthur/dent", shape, chunk_shape, "float64", xio_binary_config(), attrs);
         //auto a1 = z1.get_array<double>();
         //double v = 3.;
