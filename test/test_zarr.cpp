@@ -11,7 +11,7 @@
 
 #include "gtest/gtest.h"
 
-#include "xtensor-io/xio_binary.hpp"
+#include "xtensor-io/xgzip.hpp"
 #include "xtensor-zarr/xzarr_hierarchy.hpp"
 #include "xtensor-zarr/xzarr_file_system_store.hpp"
 
@@ -33,7 +33,7 @@ namespace xt
         nlohmann::json attrs = {{"question", "life"}, {"answer", 42}};
         xzarr_file_system_store s("h_xtensor.zr3");
         auto h = create_zarr_hierarchy(s);
-        zarray z1 = h.create_array("/arthur/dent", shape, chunk_shape, "float64", xio_binary_config(), attrs);
+        zarray z1 = h.create_array("/arthur/dent", shape, chunk_shape, "<f8", xgzip_config(), attrs);
         //auto a1 = z1.get_array<double>();
         //double v = 3.;
         //a1(2, 1) = v;
