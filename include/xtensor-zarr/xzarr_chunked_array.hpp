@@ -10,6 +10,19 @@
 #ifndef XTENSOR_ZARR_CHUNKED_ARRAY_HPP
 #define XTENSOR_ZARR_CHUNKED_ARRAY_HPP
 
+#define HALF_ENABLE_F16C_INTRINSICS 0
+#define HALF_ENABLE_CPP11_LONG_LONG 1
+#define HALF_ENABLE_CPP11_STATIC_ASSERT 1
+#define HALF_ENABLE_CPP11_CONSTEXPR 1
+#define HALF_ENABLE_CPP11_NOEXCEPT 1
+#define HALF_ENABLE_CPP11_USER_LITERALS 1
+#define HALF_ENABLE_CPP11_THREAD_LOCAL 1
+#define HALF_ENABLE_CPP11_TYPE_TRAITS 1
+#define HALF_ENABLE_CPP11_CSTDINT 1
+#define HALF_ENABLE_CPP11_CMATH 1
+#define HALF_ENABLE_CPP11_CFENV 1
+#define HALF_ENABLE_CPP11_HASH 1
+#include "half_float/half.hpp"
 #include "xtensor/xchunked_array.hpp"
 #include "xtensor/xchunk_store_manager.hpp"
 #include "xtensor/xfile_array.hpp"
@@ -45,7 +58,7 @@ namespace xt
         }
         else
         {
-            XTENSOR_THROW(std::runtime_error, "Unkown compressor: " + compressor);
+            XTENSOR_THROW(std::runtime_error, "Unknown compressor: " + compressor);
         }
     }
 
@@ -79,8 +92,39 @@ namespace xt
 
         xchunked_array_factory()
         {
-            m_builders.insert(std::make_pair("<f8", &build_chunked_array_impl<store_type, double>));
+            m_builders.insert(std::make_pair("bool", &build_chunked_array_impl<store_type, bool>));
+            m_builders.insert(std::make_pair("i1", &build_chunked_array_impl<store_type, int8_t>));
+            m_builders.insert(std::make_pair("u1", &build_chunked_array_impl<store_type, uint8_t>));
+
+            // TODO: maybe get rid of endianness here and deal with it in storage?
+
+            // little-endian
+            // signed integer
+            m_builders.insert(std::make_pair("<i2", &build_chunked_array_impl<store_type, int16_t>));
+            m_builders.insert(std::make_pair("<i4", &build_chunked_array_impl<store_type, int32_t>));
+            m_builders.insert(std::make_pair("<i8", &build_chunked_array_impl<store_type, int64_t>));
+            // unsigned integer
+            m_builders.insert(std::make_pair("<u2", &build_chunked_array_impl<store_type, uint16_t>));
+            m_builders.insert(std::make_pair("<u4", &build_chunked_array_impl<store_type, uint32_t>));
+            m_builders.insert(std::make_pair("<u8", &build_chunked_array_impl<store_type, uint64_t>));
+            // float
+            m_builders.insert(std::make_pair("<f2", &build_chunked_array_impl<store_type, half_float::half>));
             m_builders.insert(std::make_pair("<f4", &build_chunked_array_impl<store_type, float>));
+            m_builders.insert(std::make_pair("<f8", &build_chunked_array_impl<store_type, double>));
+
+            // big-endian
+            // signed integer
+            m_builders.insert(std::make_pair(">i2", &build_chunked_array_impl<store_type, int16_t>));
+            m_builders.insert(std::make_pair(">i4", &build_chunked_array_impl<store_type, int32_t>));
+            m_builders.insert(std::make_pair(">i8", &build_chunked_array_impl<store_type, int64_t>));
+            // unsigned integer
+            m_builders.insert(std::make_pair(">u2", &build_chunked_array_impl<store_type, uint16_t>));
+            m_builders.insert(std::make_pair(">u4", &build_chunked_array_impl<store_type, uint32_t>));
+            m_builders.insert(std::make_pair(">u8", &build_chunked_array_impl<store_type, uint64_t>));
+            // float
+            m_builders.insert(std::make_pair(">f2", &build_chunked_array_impl<store_type, half_float::half>));
+            m_builders.insert(std::make_pair(">f4", &build_chunked_array_impl<store_type, float>));
+            m_builders.insert(std::make_pair(">f8", &build_chunked_array_impl<store_type, double>));
         }
 
         std::map<std::string, zarray (*)(const std::string& compressor, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs)> m_builders;

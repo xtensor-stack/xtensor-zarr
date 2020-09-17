@@ -9,11 +9,11 @@
 
 #include <vector>
 
-#include "gtest/gtest.h"
-
 #include "xtensor-io/xgzip.hpp"
 #include "xtensor-zarr/xzarr_hierarchy.hpp"
 #include "xtensor-zarr/xzarr_file_system_store.hpp"
+
+#include "gtest/gtest.h"
 
 namespace xt
 {
