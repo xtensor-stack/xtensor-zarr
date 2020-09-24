@@ -63,17 +63,19 @@ namespace xt
         j["attributes"] = attrs;
         j["data_type"] = dtype;
         j["chunk_memory_layout"] = "C"; // FIXME
+        nlohmann::json compressor_config;
         if (!strcmp(compressor.name, "binary") == 0)
         {
             j["compressor"]["codec"] = std::string("https://purl.org/zarr/spec/codec/") + compressor.name + "/" + compressor.version;
-            compressor.write_to(j["compressor"]["configuration"]);
+            compressor.write_to(compressor_config);
+            j["compressor"]["configuration"] = compressor_config;
         }
         j["fill_value"] = nlohmann::json();
         j["extensions"] = nlohmann::json::array();
         m_store[std::string("meta/root") + path + ".array"] = j.dump(4);
         char separator = '.'; // FIXME
         std::string full_path = m_store.get_root() + "data/root" + path;
-        return xchunked_array_factory<store_type>::build(compressor.name, dtype, shape, chunk_shape, full_path, separator, attrs);
+        return xchunked_array_factory<store_type>::build(compressor.name, dtype, shape, chunk_shape, full_path, separator, attrs, compressor_config);
     }
 
     template <class store_type>
@@ -85,17 +87,19 @@ namespace xt
         auto json_chunk_shape = j["chunk_grid"]["chunk_shape"];
         std::string dtype = j["data_type"];
         std::string compressor;
-        if (!j.contains("compressor"))
-        {
-            compressor = "binary";
-        }
-        else
+        nlohmann::json compressor_config;
+        if (j.contains("compressor"))
         {
             compressor = j["compressor"]["codec"];
             std::size_t i = compressor.rfind('/');
             compressor = compressor.substr(0, i);
             i = compressor.rfind('/') + 1;
             compressor = compressor.substr(i, std::string::npos);
+            compressor_config = j["compressor"]["configuration"];
+        }
+        else
+        {
+            compressor = "binary";
         }
         std::vector<std::size_t> shape(json_shape.size());
         std::vector<std::size_t> chunk_shape(json_chunk_shape.size());
@@ -105,7 +109,7 @@ namespace xt
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
         char separator = '.'; // FIXME
         std::string full_path = m_store.get_root() + "data/root" + path;
-        return xchunked_array_factory<store_type>::build(compressor, dtype, shape, chunk_shape, full_path, separator, j["attributes"]);
+        return xchunked_array_factory<store_type>::build(compressor, dtype, shape, chunk_shape, full_path, separator, j["attributes"], compressor_config);
     }
 
     template <class store_type>

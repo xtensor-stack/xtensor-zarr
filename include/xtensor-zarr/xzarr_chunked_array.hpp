@@ -33,39 +33,33 @@
 
 namespace xt
 {
-    template <class T, class io_handler>
-    xchunked_array<xchunk_store_manager<xfile_array<T, io_handler>, xzarr_index_path>, xzarr_attrs>
-    get_chunked_array(std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs)
+    template <class T, class io_handler, class format_config>
+    zarray get_zarray(std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, format_config&& config, const nlohmann::json& config_json)
     {
+        config.read_from(config_json);
+        config.big_endian = (endianness == '>');
         xchunked_array<xchunk_store_manager<xfile_array<T, io_handler>, xzarr_index_path>, xzarr_attrs> a(shape, chunk_shape);
         a.chunks().set_directory(path.c_str());
         a.chunks().get_index_path().set_separator(separator);
+        a.chunks().configure_format(config);
         a.set_attrs(attrs);
-        return a;
+        return zarray(a);
     }
 
     template <class store_type, class T>
-    zarray build_chunked_array_impl(const std::string& compressor, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness)
+    zarray build_chunked_array_impl(const std::string& compressor, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, nlohmann::json& config)
     {
         if (compressor == "binary")
         {
             using format_config = xio_binary_config;
             using io_handler = typename store_type::template io_handler<format_config>;
-            format_config c;
-            c.big_endian = (endianness == '>');
-            auto a = get_chunked_array<T, io_handler>(shape, chunk_shape, path, separator, attrs);
-            a.chunks().configure_format(c);
-            return zarray(a);
+            return get_zarray<T, io_handler>(shape, chunk_shape, path, separator, attrs, endianness, format_config(), config);
         }
         else if (compressor == "gzip")
         {
             using format_config = xgzip_config;
             using io_handler = typename store_type::template io_handler<format_config>;
-            format_config c;
-            c.big_endian = (endianness == '>');
-            auto a = get_chunked_array<T, io_handler>(shape, chunk_shape, path, separator, attrs);
-            a.chunks().configure_format(c);
-            return zarray(a);
+            return get_zarray<T, io_handler>(shape, chunk_shape, path, separator, attrs, endianness, format_config(), config);
         }
         else
         {
@@ -78,7 +72,7 @@ namespace xt
     {
     public:
 
-        static zarray build(const std::string& compressor, const std::string& dtype, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs)
+        static zarray build(const std::string& compressor, const std::string& dtype, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, nlohmann::json& config)
         {
             std::string dtype_noendian = dtype;
             char endianness = dtype[0];
@@ -89,7 +83,7 @@ namespace xt
             auto fun = instance().m_builders.find(dtype_noendian);
             if (fun != instance().m_builders.end())
             {
-                zarray z = (fun->second)(compressor, shape, chunk_shape, path, separator, attrs, endianness);
+                zarray z = (fun->second)(compressor, shape, chunk_shape, path, separator, attrs, endianness, config);
                 return z;
             }
             else
@@ -127,7 +121,7 @@ namespace xt
             m_builders.insert(std::make_pair("f8", &build_chunked_array_impl<store_type, double>));
         }
 
-        std::map<std::string, zarray (*)(const std::string& compressor, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness)> m_builders;
+        std::map<std::string, zarray (*)(const std::string& compressor, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, nlohmann::json& config)> m_builders;
     };
 }
 
