@@ -66,7 +66,7 @@ namespace xt
         if (!strcmp(compressor.name, "binary") == 0)
         {
             j["compressor"]["codec"] = std::string("https://purl.org/zarr/spec/codec/") + compressor.name + "/" + compressor.version;
-            compressor.write(j["compressor"]["configuration"]);
+            compressor.write_to(j["compressor"]["configuration"]);
         }
         j["fill_value"] = nlohmann::json();
         j["extensions"] = nlohmann::json::array();

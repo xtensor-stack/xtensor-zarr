@@ -34,27 +34,38 @@
 namespace xt
 {
     template <class T, class io_handler>
-    zarray get_zarray(std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs)
+    xchunked_array<xchunk_store_manager<xfile_array<T, io_handler>, xzarr_index_path>, xzarr_attrs>
+    get_chunked_array(std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs)
     {
         xchunked_array<xchunk_store_manager<xfile_array<T, io_handler>, xzarr_index_path>, xzarr_attrs> a(shape, chunk_shape);
         a.chunks().set_directory(path.c_str());
         a.chunks().get_index_path().set_separator(separator);
         a.set_attrs(attrs);
-        return zarray(a);
+        return a;
     }
 
     template <class store_type, class T>
-    zarray build_chunked_array_impl(const std::string& compressor, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs)
+    zarray build_chunked_array_impl(const std::string& compressor, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness)
     {
         if (compressor == "binary")
         {
-            using io_handler = typename store_type::template io_handler<xio_binary_config>;
-            return get_zarray<T, io_handler>(shape, chunk_shape, path, separator, attrs);
+            using format_config = xio_binary_config;
+            using io_handler = typename store_type::template io_handler<format_config>;
+            format_config c;
+            c.big_endian = (endianness == '>');
+            auto a = get_chunked_array<T, io_handler>(shape, chunk_shape, path, separator, attrs);
+            a.chunks().configure_format(c);
+            return zarray(a);
         }
         else if (compressor == "gzip")
         {
-            using io_handler = typename store_type::template io_handler<xgzip_config>;
-            return get_zarray<T, io_handler>(shape, chunk_shape, path, separator, attrs);
+            using format_config = xgzip_config;
+            using io_handler = typename store_type::template io_handler<format_config>;
+            format_config c;
+            c.big_endian = (endianness == '>');
+            auto a = get_chunked_array<T, io_handler>(shape, chunk_shape, path, separator, attrs);
+            a.chunks().configure_format(c);
+            return zarray(a);
         }
         else
         {
@@ -69,10 +80,17 @@ namespace xt
 
         static zarray build(const std::string& compressor, const std::string& dtype, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs)
         {
-            auto fun = instance().m_builders.find(dtype);
+            std::string dtype_noendian = dtype;
+            char endianness = dtype[0];
+            if ((dtype[0] == '<') || ((dtype[0] == '>')))
+            {
+                dtype_noendian = dtype.substr(1);
+            }
+            auto fun = instance().m_builders.find(dtype_noendian);
             if (fun != instance().m_builders.end())
             {
-                return (fun->second)(compressor, shape, chunk_shape, path, separator, attrs);
+                zarray z = (fun->second)(compressor, shape, chunk_shape, path, separator, attrs, endianness);
+                return z;
             }
             else
             {
@@ -95,39 +113,21 @@ namespace xt
             m_builders.insert(std::make_pair("bool", &build_chunked_array_impl<store_type, bool>));
             m_builders.insert(std::make_pair("i1", &build_chunked_array_impl<store_type, int8_t>));
             m_builders.insert(std::make_pair("u1", &build_chunked_array_impl<store_type, uint8_t>));
-
-            // TODO: maybe get rid of endianness here and deal with it in storage?
-
-            // little-endian
             // signed integer
-            m_builders.insert(std::make_pair("<i2", &build_chunked_array_impl<store_type, int16_t>));
-            m_builders.insert(std::make_pair("<i4", &build_chunked_array_impl<store_type, int32_t>));
-            m_builders.insert(std::make_pair("<i8", &build_chunked_array_impl<store_type, int64_t>));
+            m_builders.insert(std::make_pair("i2", &build_chunked_array_impl<store_type, int16_t>));
+            m_builders.insert(std::make_pair("i4", &build_chunked_array_impl<store_type, int32_t>));
+            m_builders.insert(std::make_pair("i8", &build_chunked_array_impl<store_type, int64_t>));
             // unsigned integer
-            m_builders.insert(std::make_pair("<u2", &build_chunked_array_impl<store_type, uint16_t>));
-            m_builders.insert(std::make_pair("<u4", &build_chunked_array_impl<store_type, uint32_t>));
-            m_builders.insert(std::make_pair("<u8", &build_chunked_array_impl<store_type, uint64_t>));
+            m_builders.insert(std::make_pair("u2", &build_chunked_array_impl<store_type, uint16_t>));
+            m_builders.insert(std::make_pair("u4", &build_chunked_array_impl<store_type, uint32_t>));
+            m_builders.insert(std::make_pair("u8", &build_chunked_array_impl<store_type, uint64_t>));
             // float
-            m_builders.insert(std::make_pair("<f2", &build_chunked_array_impl<store_type, half_float::half>));
-            m_builders.insert(std::make_pair("<f4", &build_chunked_array_impl<store_type, float>));
-            m_builders.insert(std::make_pair("<f8", &build_chunked_array_impl<store_type, double>));
-
-            // big-endian
-            // signed integer
-            m_builders.insert(std::make_pair(">i2", &build_chunked_array_impl<store_type, int16_t>));
-            m_builders.insert(std::make_pair(">i4", &build_chunked_array_impl<store_type, int32_t>));
-            m_builders.insert(std::make_pair(">i8", &build_chunked_array_impl<store_type, int64_t>));
-            // unsigned integer
-            m_builders.insert(std::make_pair(">u2", &build_chunked_array_impl<store_type, uint16_t>));
-            m_builders.insert(std::make_pair(">u4", &build_chunked_array_impl<store_type, uint32_t>));
-            m_builders.insert(std::make_pair(">u8", &build_chunked_array_impl<store_type, uint64_t>));
-            // float
-            m_builders.insert(std::make_pair(">f2", &build_chunked_array_impl<store_type, half_float::half>));
-            m_builders.insert(std::make_pair(">f4", &build_chunked_array_impl<store_type, float>));
-            m_builders.insert(std::make_pair(">f8", &build_chunked_array_impl<store_type, double>));
+            m_builders.insert(std::make_pair("f2", &build_chunked_array_impl<store_type, half_float::half>));
+            m_builders.insert(std::make_pair("f4", &build_chunked_array_impl<store_type, float>));
+            m_builders.insert(std::make_pair("f8", &build_chunked_array_impl<store_type, double>));
         }
 
-        std::map<std::string, zarray (*)(const std::string& compressor, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs)> m_builders;
+        std::map<std::string, zarray (*)(const std::string& compressor, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness)> m_builders;
     };
 }
 
