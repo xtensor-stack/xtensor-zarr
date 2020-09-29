@@ -28,7 +28,7 @@
 #include "xtensor/xfile_array.hpp"
 #include "xtensor/zarray.hpp"
 #include "xtensor-io/xio_binary.hpp"
-#include "xtensor-io/xgzip.hpp"
+#include "xtensor-io/xio_gzip.hpp"
 #include "xzarr_common.hpp"
 
 namespace xt
@@ -57,7 +57,7 @@ namespace xt
         }
         else if (compressor == "gzip")
         {
-            using format_config = xgzip_config;
+            using format_config = xio_gzip_config;
             using io_handler = typename store_type::template io_handler<format_config>;
             return get_zarray<T, io_handler>(shape, chunk_shape, path, separator, attrs, endianness, format_config(), config);
         }
