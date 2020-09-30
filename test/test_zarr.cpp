@@ -12,6 +12,7 @@
 #include "xtensor-io/xio_gzip.hpp"
 #include "xtensor-zarr/xzarr_hierarchy.hpp"
 #include "xtensor-zarr/xzarr_file_system_store.hpp"
+#include "xtensor-zarr/xzarr_compressor.hpp"
 
 #include "gtest/gtest.h"
 
@@ -19,6 +20,7 @@ namespace xt
 {
     TEST(xzarr_hierarchy, read_array)
     {
+        xzarr_register_compressor<xzarr_file_system_store, xio_gzip_config>();
         xzarr_file_system_store s("h_zarrita.zr3");
         auto h = get_zarr_hierarchy(s);
         zarray z = h.get_array("/arthur/dent");
