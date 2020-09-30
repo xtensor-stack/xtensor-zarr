@@ -36,6 +36,7 @@ namespace xt
         xzarr_file_system_store s("h_xtensor.zr3");
         auto h = create_zarr_hierarchy(s);
         zarray z1 = h.create_array("/arthur/dent", shape, chunk_shape, "<f8", xio_gzip_config(), attrs);
+        //xchunked_array_factory<xzarr_file_system_store>::add_dtype<half_float::half>("f2");
         //auto a1 = z1.get_array<double>();
         //double v = 3.;
         //a1(2, 1) = v;

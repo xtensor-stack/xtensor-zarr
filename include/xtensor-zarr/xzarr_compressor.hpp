@@ -14,12 +14,12 @@
 
 namespace xt
 {
-    template <class T, class io_handler, class format_config>
+    template <class data_type, class io_handler, class format_config>
     zarray build_chunked_array_impl(std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, format_config&& config, const nlohmann::json& config_json)
     {
         config.read_from(config_json);
         config.big_endian = (endianness == '>');
-        xchunked_array<xchunk_store_manager<xfile_array<T, io_handler>, xzarr_index_path>, xzarr_attrs> a(shape, chunk_shape);
+        xchunked_array<xchunk_store_manager<xfile_array<data_type, io_handler>, xzarr_index_path>, xzarr_attrs> a(shape, chunk_shape);
         a.chunks().set_directory(path.c_str());
         a.chunks().get_index_path().set_separator(separator);
         a.chunks().configure_format(config);
@@ -27,14 +27,14 @@ namespace xt
         return zarray(a);
     }
 
-    template <class store_type, class T, class format_config>
+    template <class store_type, class data_type, class format_config>
     zarray build_chunked_array_with_compressor(std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, nlohmann::json& config)
     {
         using io_handler = typename store_type::template io_handler<format_config>;
-        return build_chunked_array_impl<T, io_handler>(shape, chunk_shape, path, separator, attrs, endianness, format_config(), config);
+        return build_chunked_array_impl<data_type, io_handler>(shape, chunk_shape, path, separator, attrs, endianness, format_config(), config);
     }
 
-    template <class store_type, class T>
+    template <class store_type, class data_type>
     class xcompressor_factory
     {
     public:
@@ -48,7 +48,7 @@ namespace xt
             {
                 XTENSOR_THROW(std::runtime_error, "Compressor already registered: " + std::string(name));
             }
-            instance().m_builders.insert(std::make_pair(name, &build_chunked_array_with_compressor<store_type, T, format_config>));
+            instance().m_builders.insert(std::make_pair(name, &build_chunked_array_with_compressor<store_type, data_type, format_config>));
         }
 
         static zarray build(const std::string& compressor, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, nlohmann::json& config)
@@ -78,7 +78,7 @@ namespace xt
         xcompressor_factory()
         {
             using format_config = xio_binary_config;
-            m_builders.insert(std::make_pair(format_config().name, &build_chunked_array_with_compressor<store_type, T, format_config>));
+            m_builders.insert(std::make_pair(format_config().name, &build_chunked_array_with_compressor<store_type, data_type, format_config>));
         }
 
         std::map<std::string, zarray (*)(std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, nlohmann::json& config)> m_builders;

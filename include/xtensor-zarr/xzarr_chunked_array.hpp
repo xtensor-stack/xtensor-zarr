@@ -34,16 +34,27 @@
 
 namespace xt
 {
-    template <class store_type, class T>
+    template <class store_type, class data_type>
     zarray build_chunked_array_with_dtype(const std::string& compressor, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, nlohmann::json& config)
     {
-        return xcompressor_factory<store_type, T>::build(compressor, shape, chunk_shape, path, separator, attrs, endianness, config);
+        return xcompressor_factory<store_type, data_type>::build(compressor, shape, chunk_shape, path, separator, attrs, endianness, config);
     }
 
     template <class store_type>
     class xchunked_array_factory
     {
     public:
+
+        template <class data_type>
+        static void add_dtype(const char* name)
+        {
+            auto fun = instance().m_builders.find(name);
+            if (fun != instance().m_builders.end())
+            {
+                XTENSOR_THROW(std::runtime_error, "Data type already registered: " + std::string(name));
+            }
+            instance().m_builders.insert(std::make_pair(name, &build_chunked_array_with_dtype<store_type, data_type>));
+        }
 
         static zarray build(const std::string& compressor, const std::string& dtype, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, nlohmann::json& config)
         {
@@ -61,7 +72,7 @@ namespace xt
             }
             else
             {
-                XTENSOR_THROW(std::runtime_error, "Unkown data type: " + dtype);
+                XTENSOR_THROW(std::runtime_error, "Unknown data type: " + dtype);
             }
         }
 
