@@ -4,9 +4,14 @@ channels:
 dependencies:
   - notebook
   - xeus-cling
+  - python
+  - bash_kernel
   - nlohmann_json
   - cpp-filesystem
   - cpp-half
   - zlib
   - blosc
-  - xtl
+  - allthekernels
+  - fsspec
+  - numcodecs
+  - numpy
