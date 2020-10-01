@@ -82,8 +82,9 @@ namespace xt
     template <class store_type>
     zarray xzarr_hierarchy<store_type>::get_array(const char* path)
     {
-        std::vector<char> s = m_store[std::string("meta/root") + path + ".array"];
-        auto j = nlohmann::json::parse(s.data());
+        std::vector<char> bytes = m_store[std::string("meta/root") + path + ".array"];
+        std::string s(bytes.begin(), bytes.end());
+        auto j = nlohmann::json::parse(s);
         auto json_shape = j["shape"];
         auto json_chunk_shape = j["chunk_grid"]["chunk_shape"];
         std::string dtype = j["data_type"];
