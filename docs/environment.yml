@@ -1,4 +1,4 @@
-name: xtensor-io-docs
+name: xtensor-zarr-docs
 
 channels:
   - conda-forge

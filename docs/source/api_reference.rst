@@ -10,8 +10,8 @@ API Reference
 Hierarchy
 ---------
 
-Defined in ``xtensor-zarr/hierarchy.hpp``
+Defined in ``xtensor-zarr/xzarr_hierarchy.hpp``
 
-.. doxygenclass:: xt::hierarchy
+.. doxygenclass:: xt::xzarr_hierarchy
    :project: xtensor-zarr
    :members:
