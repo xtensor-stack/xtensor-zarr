@@ -44,7 +44,7 @@ install:
     # Install development versions of xtensor, xtensor-io and zarrita
     - mkdir dev_tmp
     - cd dev_tmp
-    - git clone https://github.com/xtensor-stack/xtensor.git
+    - git clone --single-branch --branch set_chunk_shape https://github.com/davidbrochart/xtensor.git
     - git clone https://github.com/xtensor-stack/xtensor-io.git
     - git clone --single-branch --branch codec https://github.com/davidbrochart/zarrita.git
     - mv xtensor/include/xtensor $CONDA_PREFIX/include/

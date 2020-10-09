@@ -75,7 +75,7 @@ namespace xt
         j["fill_value"] = nlohmann::json();
         j["extensions"] = nlohmann::json::array();
         m_store[std::string("meta/root") + path + ".array"] = j.dump(4);
-        std::string full_path = m_store.get_root() + "data/root" + path;
+        std::string full_path = m_store.get_root() + "/data/root" + path;
         return xchunked_array_factory<store_type>::build(compressor.name, dtype, shape, chunk_shape, full_path, chunk_separator, attrs, compressor_config);
     }
 
@@ -110,7 +110,7 @@ namespace xt
         std::transform(json_chunk_shape.begin(), json_chunk_shape.end(), chunk_shape.begin(),
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
         std::string chunk_separator = j["chunk_grid"]["separator"];
-        std::string full_path = m_store.get_root() + "data/root" + path;
+        std::string full_path = m_store.get_root() + "/data/root" + path;
         return xchunked_array_factory<store_type>::build(compressor, dtype, shape, chunk_shape, full_path, chunk_separator[0], j["attributes"], compressor_config);
     }
 

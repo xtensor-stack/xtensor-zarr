@@ -24,8 +24,8 @@ namespace xt
         xzarr_file_system_store s("h_zarrita.zr3");
         auto h = get_zarr_hierarchy(s);
         zarray z = h.get_array("/arthur/dent");
-        //auto a = xt::arange(5 * 10).reshape({5, 10});
-        //EXPECT_EQ(a, z.get_array<double>());
+        auto a = arange(5 * 10).reshape({5, 10});
+        EXPECT_EQ(a, z.get_array<double>());
     }
 
     TEST(xzarr_hierarchy, write_array)

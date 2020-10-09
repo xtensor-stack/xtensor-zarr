@@ -23,7 +23,7 @@ namespace xt
         a.chunks().get_index_path().set_separator(separator);
         a.chunks().configure_format(config);
         a.set_attrs(attrs);
-        return zarray(a);
+        return zarray(std::move(a));
     }
 
     template <class store_type, class data_type, class format_config>
