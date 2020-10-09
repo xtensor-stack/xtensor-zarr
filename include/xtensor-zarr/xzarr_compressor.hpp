@@ -19,8 +19,7 @@ namespace xt
     {
         config.read_from(config_json);
         config.big_endian = (endianness == '>');
-        xchunked_array<xchunk_store_manager<xfile_array<data_type, io_handler>, xzarr_index_path>, xzarr_attrs> a(shape, chunk_shape);
-        a.chunks().set_directory(path.c_str());
+        xchunked_array<xchunk_store_manager<xfile_array<data_type, io_handler>, xzarr_index_path>, xzarr_attrs> a(shape, chunk_shape, path);
         a.chunks().get_index_path().set_separator(separator);
         a.chunks().configure_format(config);
         a.set_attrs(attrs);

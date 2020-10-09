@@ -21,7 +21,7 @@ namespace xt
     public:
         xzarr_index_path();
 
-        void set_directory(const char* directory);
+        void set_directory(const std::string& directory);
         void set_separator(const char separator);
         template <class I>
         void index_to_path(I first, I last, std::string& path);
@@ -51,7 +51,7 @@ namespace xt
     {
     }
 
-    void xzarr_index_path::set_directory(const char* directory)
+    void xzarr_index_path::set_directory(const std::string& directory)
     {
         m_directory = directory;
         if (m_directory.back() != '/')
@@ -71,7 +71,11 @@ namespace xt
         std::string fname;
         for (auto it = first; it != last; ++it)
         {
-            if (!fname.empty())
+            if (fname.empty())
+            {
+                fname.push_back('c');
+            }
+            else
             {
                 fname.push_back(m_separator);
             }
