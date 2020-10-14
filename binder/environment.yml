@@ -9,6 +9,7 @@ dependencies:
   - nlohmann_json
   - cpp-filesystem
   - cpp-half
+  - google-cloud-cpp
   - zlib
   - blosc
   - allthekernels

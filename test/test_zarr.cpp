@@ -12,6 +12,7 @@
 #include "xtensor-io/xio_gzip.hpp"
 #include "xtensor-zarr/xzarr_hierarchy.hpp"
 #include "xtensor-zarr/xzarr_file_system_store.hpp"
+#include "xtensor-zarr/xzarr_gcs_store.hpp"
 #include "xtensor-zarr/xzarr_compressor.hpp"
 
 #include "gtest/gtest.h"
@@ -45,5 +46,15 @@ namespace xt
         //xarray<double> a2 = z2.get_array<double>();
         //EXPECT_EQ(a2(2, 1), v);
         //EXPECT_EQ(a2.attrs(), attrs);
+    }
+
+    TEST(xzarr_hierarchy, read_array_gcs)
+    {
+        xzarr_register_compressor<xzarr_gcs_store, xio_gzip_config>();
+        xzarr_gcs_store s("zarr-demo/v3/test.zr3");
+        auto h = get_zarr_hierarchy(s);
+        zarray z = h.get_array("/arthur/dent");
+        auto a = arange(5 * 10).reshape({5, 10});
+        EXPECT_EQ(a, z.get_array<int32_t>());
     }
 }

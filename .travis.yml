@@ -5,9 +5,9 @@ matrix:
   fast_finish: true
   include:
     - os: linux
-    #- os: osx
-    #  osx_image: xcode8
-    #  compiler: clang
+    - os: osx
+      osx_image: xcode9
+      compiler: clang
 env:
   global:
     - MINCONDA_VERSION="latest"
@@ -32,12 +32,14 @@ install:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         export CXX=clang++ CC=clang;
       fi
+    # Install mamba
+    - conda install mamba -c conda-forge
     # Install host dependencies
-    - conda create -n test nlohmann_json cpp-filesystem cpp-half zlib blosc xtl python fsspec numpy numcodecs sh -c conda-forge
+    - mamba create -n test nlohmann_json google-cloud-cpp cpp-filesystem cpp-half zlib blosc xtl python fsspec numpy numcodecs sh -c conda-forge
     # Install build dependencies
-    - conda install -n test cmake -c conda-forge
+    - mamba install -n test cmake -c conda-forge
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-        conda install -n test gxx_linux-64 libgcc -c conda-forge;
+        mamba install -n test gxx_linux-64 libgcc -c conda-forge;
       fi
     # Activate test environment
     - source activate test
@@ -45,7 +47,7 @@ install:
     - mkdir dev_tmp
     - cd dev_tmp
     - git clone --single-branch --branch set_chunk_shape https://github.com/davidbrochart/xtensor.git
-    - git clone https://github.com/xtensor-stack/xtensor-io.git
+    - git clone --single-branch --branch gcs https://github.com/davidbrochart/xtensor-io.git
     - git clone --single-branch --branch codec https://github.com/davidbrochart/zarrita.git
     - mv xtensor/include/xtensor $CONDA_PREFIX/include/
     - mv xtensor-io/include/xtensor-io $CONDA_PREFIX/include/
