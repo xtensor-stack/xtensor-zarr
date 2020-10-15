@@ -5,9 +5,9 @@ matrix:
   fast_finish: true
   include:
     - os: linux
-    - os: osx
-      osx_image: xcode9
-      compiler: clang
+    #- os: osx
+    #  osx_image: xcode9
+    #  compiler: clang
 env:
   global:
     - MINCONDA_VERSION="latest"
@@ -43,12 +43,22 @@ install:
       fi
     # Activate test environment
     - source activate test
-    # Install development versions of xtensor, xtensor-io and zarrita
+    # Install development versions
     - mkdir dev_tmp
     - cd dev_tmp
-    - git clone --single-branch --branch set_chunk_shape https://github.com/davidbrochart/xtensor.git
-    - git clone --single-branch --branch gcs https://github.com/davidbrochart/xtensor-io.git
-    - git clone --single-branch --branch codec https://github.com/davidbrochart/zarrita.git
+    # xtensor
+    - wget https://github.com/xtensor-stack/xtensor/archive/master.tar.gz -O xtensor.tar.gz -q
+    - mkdir xtensor
+    - tar zxf xtensor.tar.gz -C xtensor --strip-components 1
+    # xtensor-io
+    - wget https://github.com/davidbrochart/xtensor-io/archive/chunked_factory.tar.gz -O xtensor-io.tar.gz -q
+    - mkdir xtensor-io
+    - tar zxf xtensor-io.tar.gz -C xtensor-io --strip-components 1
+    # zarrita
+    - wget https://github.com/davidbrochart/zarrita/archive/codec.tar.gz -O zarrita.tar.gz -q
+    - mkdir zarrita
+    - tar zxf zarrita.tar.gz -C zarrita --strip-components 1
+    # move to conda environment
     - mv xtensor/include/xtensor $CONDA_PREFIX/include/
     - mv xtensor-io/include/xtensor-io $CONDA_PREFIX/include/
     - mv zarrita/zarrita.py ../test

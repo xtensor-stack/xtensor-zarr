@@ -22,13 +22,10 @@
 #define HALF_ENABLE_CPP11_CMATH 1
 #define HALF_ENABLE_CPP11_CFENV 1
 #define HALF_ENABLE_CPP11_HASH 1
+
 #include "half_float/half.hpp"
 #include "xtensor/xchunked_array.hpp"
-#include "xtensor/xchunk_store_manager.hpp"
-#include "xtensor/xfile_array.hpp"
 #include "xtensor/zarray.hpp"
-#include "xtensor-io/xio_binary.hpp"
-#include "xtensor-io/xio_gzip.hpp"
 #include "xzarr_common.hpp"
 #include "xzarr_compressor.hpp"
 

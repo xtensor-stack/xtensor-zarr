@@ -17,7 +17,7 @@
 #include <string>
 
 #include "ghc/filesystem.hpp"
-#include "xtensor/xdisk_io_handler.hpp"
+#include "xtensor-io/xdisk_io_handler.hpp"
 
 namespace fs = ghc::filesystem;
 

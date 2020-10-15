@@ -10,6 +10,10 @@
 #ifndef XTENSOR_ZARR_COMPRESSOR_HPP
 #define XTENSOR_ZARR_COMPRESSOR_HPP
 
+#include "xzarr_common.hpp"
+#include "xtensor-io/xchunk_store_manager.hpp"
+#include "xtensor-io/xfile_array.hpp"
+#include "xtensor-io/xio_binary.hpp"
 #include "xtensor/zarray.hpp"
 
 namespace xt
@@ -19,7 +23,7 @@ namespace xt
     {
         config.read_from(config_json);
         config.big_endian = (endianness == '>');
-        xchunked_array<xchunk_store_manager<xfile_array<data_type, io_handler>, xzarr_index_path>, xzarr_attrs> a(shape, chunk_shape, path);
+        auto a = chunked_array<xfile_array<data_type, io_handler>, xzarr_index_path, xzarr_attrs>(shape, chunk_shape, path);
         a.chunks().get_index_path().set_separator(separator);
         a.chunks().configure_format(config);
         a.set_attrs(attrs);
