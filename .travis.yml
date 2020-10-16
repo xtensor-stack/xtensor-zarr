@@ -35,7 +35,7 @@ install:
     # Install mamba
     - conda install mamba -c conda-forge
     # Install host dependencies
-    - mamba create -n test nlohmann_json google-cloud-cpp cpp-filesystem cpp-half zlib blosc xtl python fsspec numpy numcodecs sh -c conda-forge
+    - mamba create -n test nlohmann_json google-cloud-cpp cpp-filesystem zlib blosc python fsspec numpy numcodecs sh -c conda-forge
     # Install build dependencies
     - mamba install -n test cmake -c conda-forge
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -51,9 +51,13 @@ install:
     - mkdir xtensor
     - tar zxf xtensor.tar.gz -C xtensor --strip-components 1
     # xtensor-io
-    - wget https://github.com/davidbrochart/xtensor-io/archive/chunked_factory.tar.gz -O xtensor-io.tar.gz -q
+    - wget https://github.com/xtensor-stack/xtensor-io/archive/master.tar.gz -O xtensor-io.tar.gz -q
     - mkdir xtensor-io
     - tar zxf xtensor-io.tar.gz -C xtensor-io --strip-components 1
+    # xtl
+    - wget https://github.com/xtensor-stack/xtl/archive/master.tar.gz -O xtl.tar.gz -q
+    - mkdir xtl
+    - tar zxf xtl.tar.gz -C xtl --strip-components 1
     # zarrita
     - wget https://github.com/davidbrochart/zarrita/archive/codec.tar.gz -O zarrita.tar.gz -q
     - mkdir zarrita
@@ -61,6 +65,7 @@ install:
     # move to conda environment
     - mv xtensor/include/xtensor $CONDA_PREFIX/include/
     - mv xtensor-io/include/xtensor-io $CONDA_PREFIX/include/
+    - mv xtl/include/xtl $CONDA_PREFIX/include/
     - mv zarrita/zarrita.py ../test
     - cd ..
     # Build

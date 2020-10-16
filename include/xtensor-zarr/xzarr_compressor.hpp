@@ -15,6 +15,7 @@
 #include "xtensor-io/xfile_array.hpp"
 #include "xtensor-io/xio_binary.hpp"
 #include "xtensor/zarray.hpp"
+#include "xtl/xhalf_float.hpp"
 
 namespace xt
 {
@@ -23,7 +24,7 @@ namespace xt
     {
         config.read_from(config_json);
         config.big_endian = (endianness == '>');
-        auto a = chunked_array<xfile_array<data_type, io_handler>, xzarr_index_path, xzarr_attrs>(shape, chunk_shape, path);
+        auto a = chunked_file_array<data_type, io_handler, xzarr_index_path, xzarr_attrs>(shape, chunk_shape, path);
         a.chunks().get_index_path().set_separator(separator);
         a.chunks().configure_format(config);
         a.set_attrs(attrs);
@@ -99,7 +100,7 @@ namespace xt
         xcompressor_factory<store_type, uint16_t>::add_compressor(format_config());
         xcompressor_factory<store_type, uint32_t>::add_compressor(format_config());
         xcompressor_factory<store_type, uint64_t>::add_compressor(format_config());
-        xcompressor_factory<store_type, half_float::half>::add_compressor(format_config());
+        xcompressor_factory<store_type, xtl::half_float>::add_compressor(format_config());
         xcompressor_factory<store_type, float>::add_compressor(format_config());
         xcompressor_factory<store_type, double>::add_compressor(format_config());
     }

@@ -17,7 +17,7 @@
 #include <string>
 
 #include "ghc/filesystem.hpp"
-#include "xtensor-io/xdisk_io_handler.hpp"
+#include "xtensor-io/xio_disk_handler.hpp"
 
 namespace fs = ghc::filesystem;
 
@@ -42,7 +42,7 @@ namespace xt
     {
     public:
         template <class C>
-        using io_handler = xdisk_io_handler<C>;
+        using io_handler = xio_disk_handler<C>;
 
         xzarr_file_system_store(const char* root);
         xzarr_file_system_stream operator[](const char* key);

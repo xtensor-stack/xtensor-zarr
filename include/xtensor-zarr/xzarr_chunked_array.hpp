@@ -10,20 +10,6 @@
 #ifndef XTENSOR_ZARR_CHUNKED_ARRAY_HPP
 #define XTENSOR_ZARR_CHUNKED_ARRAY_HPP
 
-#define HALF_ENABLE_F16C_INTRINSICS 0
-#define HALF_ENABLE_CPP11_LONG_LONG 1
-#define HALF_ENABLE_CPP11_STATIC_ASSERT 1
-#define HALF_ENABLE_CPP11_CONSTEXPR 1
-#define HALF_ENABLE_CPP11_NOEXCEPT 1
-#define HALF_ENABLE_CPP11_USER_LITERALS 1
-#define HALF_ENABLE_CPP11_THREAD_LOCAL 1
-#define HALF_ENABLE_CPP11_TYPE_TRAITS 1
-#define HALF_ENABLE_CPP11_CSTDINT 1
-#define HALF_ENABLE_CPP11_CMATH 1
-#define HALF_ENABLE_CPP11_CFENV 1
-#define HALF_ENABLE_CPP11_HASH 1
-
-#include "half_float/half.hpp"
 #include "xtensor/xchunked_array.hpp"
 #include "xtensor/zarray.hpp"
 #include "xzarr_common.hpp"
@@ -97,7 +83,7 @@ namespace xt
             m_builders.insert(std::make_pair("u4", &build_chunked_array_with_dtype<store_type, uint32_t>));
             m_builders.insert(std::make_pair("u8", &build_chunked_array_with_dtype<store_type, uint64_t>));
             // float
-            m_builders.insert(std::make_pair("f2", &build_chunked_array_with_dtype<store_type, half_float::half>));
+            m_builders.insert(std::make_pair("f2", &build_chunked_array_with_dtype<store_type, xtl::half_float>));
             m_builders.insert(std::make_pair("f4", &build_chunked_array_with_dtype<store_type, float>));
             m_builders.insert(std::make_pair("f8", &build_chunked_array_with_dtype<store_type, double>));
         }
