@@ -48,6 +48,7 @@ namespace xt
         nlohmann::json j;
         j["zarr_format"] = "https://purl.org/zarr/spec/protocol/core/3.0";
         j["metadata_encoding"] = "https://purl.org/zarr/spec/protocol/core/3.0";
+        j["metadata_key_suffix"] = ".json";
         j["extensions"] = nlohmann::json::array();
 
         m_store["zarr.json"] = j.dump(4);
@@ -68,13 +69,13 @@ namespace xt
         nlohmann::json compressor_config;
         if (strcmp(compressor.name, "binary"))
         {
-            j["compressor"]["codec"] = std::string("https://purl.org/zarr/spec/codec/") + compressor.name + "/" + compressor.version;
+            j["compressor"]["codec"] = std::string("https://purl.org/zarr/spec/codec/") + compressor.name + "/1.0";
             compressor.write_to(compressor_config);
             j["compressor"]["configuration"] = compressor_config;
         }
         j["fill_value"] = nlohmann::json();
         j["extensions"] = nlohmann::json::array();
-        m_store[std::string("meta/root") + path + ".array"] = j.dump(4);
+        m_store[std::string("meta/root") + path + ".array.json"] = j.dump(4);
         std::string full_path = m_store.get_root() + "/data/root" + path;
         return xchunked_array_factory<store_type>::build(compressor.name, dtype, shape, chunk_shape, full_path, chunk_separator, attrs, compressor_config);
     }
@@ -82,7 +83,7 @@ namespace xt
     template <class store_type>
     zarray xzarr_hierarchy<store_type>::get_array(const char* path)
     {
-        std::vector<char> bytes = m_store[std::string("meta/root") + path + ".array"];
+        std::vector<char> bytes = m_store[std::string("meta/root") + path + ".array.json"];
         std::string s(bytes.begin(), bytes.end());
         auto j = nlohmann::json::parse(s);
         auto json_shape = j["shape"];

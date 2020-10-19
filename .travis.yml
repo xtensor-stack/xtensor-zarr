@@ -59,7 +59,7 @@ install:
     - mkdir xtl
     - tar zxf xtl.tar.gz -C xtl --strip-components 1
     # zarrita
-    - wget https://github.com/davidbrochart/zarrita/archive/codec.tar.gz -O zarrita.tar.gz -q
+    - wget https://github.com/alimanfoo/zarrita/archive/master.tar.gz -O zarrita.tar.gz -q
     - mkdir zarrita
     - tar zxf zarrita.tar.gz -C zarrita --strip-components 1
     # move to conda environment
