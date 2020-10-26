@@ -12,4 +12,5 @@ assert a.dtype == np.dtype('float64')
 assert a.chunk_shape == (2, 2)
 assert a.compressor == GZip(level=1)
 assert a.attrs == {'answer': 42, 'question': 'life'}
+assert a.fill_value == 6.6
 #assert np.all(a[:, :] == a_ref)

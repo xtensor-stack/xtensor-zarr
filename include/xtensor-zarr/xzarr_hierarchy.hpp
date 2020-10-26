@@ -26,7 +26,7 @@ namespace xt
         void create_hierarchy();
 
         template <class shape_type, class C>
-        zarray create_array(const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout='C', char chunk_separator='/', const C& compressor=xio_binary_config(), const nlohmann::json& attrs=nlohmann::json::array(), std::size_t chunk_pool_size=1);
+        zarray create_array(const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout='C', char chunk_separator='/', const C& compressor=xio_binary_config(), const nlohmann::json& attrs=nlohmann::json::array(), std::size_t chunk_pool_size=1, const nlohmann::json& fill_value=nlohmann::json());
 
         zarray get_array(const std::string& path, std::size_t chunk_pool_size=1);
 
@@ -56,7 +56,7 @@ namespace xt
 
     template <class store_type>
     template <class shape_type, class C>
-    zarray xzarr_hierarchy<store_type>::create_array(const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout, char chunk_separator, const C& compressor, const nlohmann::json& attrs, std::size_t chunk_pool_size)
+    zarray xzarr_hierarchy<store_type>::create_array(const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout, char chunk_separator, const C& compressor, const nlohmann::json& attrs, std::size_t chunk_pool_size, const nlohmann::json& fill_value)
     {
         nlohmann::json j;
         j["shape"] = shape;
@@ -73,11 +73,11 @@ namespace xt
             compressor.write_to(compressor_config);
             j["compressor"]["configuration"] = compressor_config;
         }
-        j["fill_value"] = nlohmann::json();
+        j["fill_value"] = fill_value;
         j["extensions"] = nlohmann::json::array();
         m_store[std::string("meta/root") + path + ".array.json"] = j.dump(4);
         std::string full_path = m_store.get_root() + "/data/root" + path;
-        return xchunked_array_factory<store_type>::build(compressor.name, dtype, chunk_memory_layout, shape, chunk_shape, full_path, chunk_separator, attrs, compressor_config, chunk_pool_size);
+        return xchunked_array_factory<store_type>::build(compressor.name, dtype, chunk_memory_layout, shape, chunk_shape, full_path, chunk_separator, attrs, compressor_config, chunk_pool_size, fill_value);
     }
 
     template <class store_type>
@@ -113,7 +113,7 @@ namespace xt
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
         std::string chunk_separator = j["chunk_grid"]["separator"];
         std::string full_path = m_store.get_root() + "/data/root" + path;
-        return xchunked_array_factory<store_type>::build(compressor, dtype, chunk_memory_layout[0], shape, chunk_shape, full_path, chunk_separator[0], j["attributes"], compressor_config, chunk_pool_size);
+        return xchunked_array_factory<store_type>::build(compressor, dtype, chunk_memory_layout[0], shape, chunk_shape, full_path, chunk_separator[0], j["attributes"], compressor_config, chunk_pool_size, j["fill_value"]);
     }
 
     template <class store_type>
