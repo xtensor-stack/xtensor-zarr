@@ -30,6 +30,7 @@ namespace xt
         operator std::string() const;
         void operator=(const std::vector<char>& value);
         void operator=(const std::string& value);
+        bool exists();
 
     private:
         void assign(const char* value, std::size_t size);
@@ -45,6 +46,9 @@ namespace xt
 
         xzarr_file_system_store(const std::string& root);
         xzarr_file_system_stream operator[](const std::string& key);
+        void list_dir(const std::string& prefix, std::vector<std::string>& keys, std::vector<std::string>& prefixes);
+        std::vector<std::string> list();
+        std::vector<std::string> list_prefix(const std::string& prefix);
 
         std::string get_root();
 
@@ -59,6 +63,12 @@ namespace xt
     xzarr_file_system_stream::xzarr_file_system_stream(const std::string& path)
         : m_path(path)
     {
+    }
+
+    bool xzarr_file_system_stream::exists()
+    {
+        std::ifstream stream(m_path);
+        return stream.good();
     }
 
     xzarr_file_system_stream::operator std::string() const
@@ -129,6 +139,39 @@ namespace xt
         return m_root;
     }
 
+    void xzarr_file_system_store::list_dir(const std::string& prefix, std::vector<std::string>& keys, std::vector<std::string>& prefixes)
+    {
+        std::string path = m_root + '/' + prefix;
+        for (const auto& entry: fs::directory_iterator(path))
+        {
+            std::string p = entry.path();
+            if (fs::is_directory(p))
+            {
+                prefixes.push_back(p.substr(m_root.size() + 1));
+            }
+            else
+            {
+                keys.push_back(p.substr(m_root.size() + 1));
+            }
+        }
+    }
+
+    std::vector<std::string> xzarr_file_system_store::list()
+    {
+        return list_prefix("");
+    }
+
+    std::vector<std::string> xzarr_file_system_store::list_prefix(const std::string& prefix)
+    {
+        std::string path = m_root + '/' + prefix;
+        std::vector<std::string> keys;
+        for (const auto& entry: fs::recursive_directory_iterator(path))
+        {
+            std::string p = entry.path();
+            keys.push_back(p.substr(m_root.size() + 1));
+        }
+        return keys;
+    }
 }
 
 #endif

@@ -11,6 +11,7 @@
 
 #include "xtensor/xview.hpp"
 #include "xtensor-io/xio_gzip.hpp"
+#include "xtensor-io/xio_binary.hpp"
 #include "xtensor-zarr/xzarr_hierarchy.hpp"
 #include "xtensor-zarr/xzarr_file_system_store.hpp"
 #include "xtensor-zarr/xzarr_gcs_store.hpp"
@@ -61,5 +62,48 @@ namespace xt
         zarray z = h.get_array("/arthur/dent");
         auto a = arange(5 * 10).reshape({5, 10});
         EXPECT_EQ(a, z.get_array<int32_t>());
+    }
+
+    TEST(xzarr_hierarchy, create_group)
+    {
+        xzarr_file_system_store store1("h_xtensor.zr3");
+        auto h1 = get_zarr_hierarchy(store1);
+        nlohmann::json attrs = {{"heart", "gold"}, {"improbability", "infinite"}};
+        auto g1 = h1.create_group("/tricia/mcmillan", attrs);
+        // since "/tricia/mcmillan" is a group, it should not be possible to get it as an array
+        EXPECT_THROW(h1["/tricia/mcmillan"].get_array(), std::runtime_error);
+    }
+
+    TEST(xzarr_hierarchy, create_node)
+    {
+        xzarr_file_system_store store1("h_xtensor.zr3");
+        auto h1 = get_zarr_hierarchy(store1);
+        h1.create_group("/marvin");
+        h1["/marvin"].create_group("paranoid");
+        std::vector<size_t> shape = {5, 5};
+        std::vector<size_t> chunk_shape = {3, 3};
+        h1["/marvin"].create_array("android", shape, chunk_shape, "<f8", 'C', '/', xio_binary_config());
+        // since "/marvin/android" is an array, it should not be possible to get it as a group
+        EXPECT_THROW(h1["/marvin/android"].get_group(), std::runtime_error);
+    }
+
+    TEST(xzarr_hierarchy, explore)
+    {
+        xzarr_file_system_store store1("h_xtensor.zr3");
+        auto h1 = get_zarr_hierarchy(store1);
+        std::string children = h1.get_children("/").dump();
+        std::string ref1 = "{\"arthur\":\"implicit_group\",\"marvin\":\"explicit_group\",\"tricia\":\"implicit_group\"}";
+        EXPECT_EQ(children, ref1);
+        children = h1.get_children("/marvin").dump();
+        std::string ref2 = "{\"android\":\"array\",\"paranoid\":\"explicit_group\"}";
+        EXPECT_EQ(children, ref2);
+
+        children = h1.get_children().dump();
+        EXPECT_EQ(children, ref1);
+        children = h1["marvin"].get_children().dump();
+        EXPECT_EQ(children, ref2);
+
+        std::string nodes = h1.get_nodes().dump();
+        EXPECT_EQ(nodes, "{\"arthur\":\"implicit_group\",\"arthur/dent\":\"array\",\"marvin\":\"explicit_group\",\"marvin/android\":\"array\",\"marvin/paranoid\":\"explicit_group\",\"tricia\":\"implicit_group\",\"tricia/mcmillan\":\"explicit_group\"}");
     }
 }

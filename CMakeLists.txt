@@ -42,6 +42,14 @@ message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
 set(XTENSOR_ZARR_HEADERS
   ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor-zarr.hpp
   ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_hierarchy.hpp
+  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_node.hpp
+  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_group.hpp
+  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_array.hpp
+  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_file_system_store.hpp
+  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_gcs_store.hpp
+  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_common.hpp
+  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_compressor.hpp
+  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_chunked_array.hpp
   ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config.hpp
 )
 

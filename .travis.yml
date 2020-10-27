@@ -51,7 +51,7 @@ install:
     - mkdir xtensor
     - tar zxf xtensor.tar.gz -C xtensor --strip-components 1
     # xtensor-io
-    - wget https://github.com/davidbrochart/xtensor-io/archive/init_value.tar.gz -O xtensor-io.tar.gz -q
+    - wget https://github.com/xtensor-stack/xtensor-io/archive/master.tar.gz -O xtensor-io.tar.gz -q
     - mkdir xtensor-io
     - tar zxf xtensor-io.tar.gz -C xtensor-io --strip-components 1
     # xtl
