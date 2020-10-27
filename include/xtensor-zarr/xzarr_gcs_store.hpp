@@ -23,8 +23,7 @@ namespace xt
     class xzarr_gcs_stream
     {
     public:
-        xzarr_gcs_stream(const char* path);
-        operator std::vector<char>() const;
+        xzarr_gcs_stream(const std::string& path);
         operator std::string() const;
         void operator=(const std::vector<char>& value);
         void operator=(const std::string& value);
@@ -41,11 +40,9 @@ namespace xt
         template <class C>
         using io_handler = xio_gcs_handler<C>;
 
-        xzarr_gcs_store(const char* root);
-        xzarr_gcs_stream operator[](const char* key);
+        xzarr_gcs_store(const std::string& root);
         xzarr_gcs_stream operator[](const std::string& key);
 
-        void set_root(const char* root);
         std::string get_root();
 
     private:
@@ -56,12 +53,12 @@ namespace xt
      * xzarr_gcs_stream implementation *
      ***********************************/
 
-    xzarr_gcs_stream::xzarr_gcs_stream(const char* path)
+    xzarr_gcs_stream::xzarr_gcs_stream(const std::string& path)
         : m_path(path)
     {
     }
 
-    xzarr_gcs_stream::operator std::vector<char>() const
+    xzarr_gcs_stream::operator std::string() const
     {
         std::string bucket_name;
         std::string file_path;
@@ -70,7 +67,7 @@ namespace xt
         file_path = m_path.substr(i + 1);
         gcs::Client client((gcs::ClientOptions(gcs::oauth2::CreateAnonymousCredentials())));
         auto reader = client.ReadObject(bucket_name, file_path);
-        std::vector<char> bytes{std::istreambuf_iterator<char>{reader}, {}};
+        std::string bytes{std::istreambuf_iterator<char>{reader}, {}};
         return bytes;
     }
 
@@ -101,7 +98,7 @@ namespace xt
      * xzarr_gcs_store implementation *
      **********************************/
 
-    xzarr_gcs_store::xzarr_gcs_store(const char* root)
+    xzarr_gcs_store::xzarr_gcs_store(const std::string& root)
         : m_root(root)
     {
         if (m_root.empty())
@@ -114,20 +111,9 @@ namespace xt
         }
     }
 
-    xzarr_gcs_stream xzarr_gcs_store::operator[](const char* key)
-    {
-        std::string path = m_root + '/' + key;
-        return xzarr_gcs_stream(path.c_str());
-    }
-
     xzarr_gcs_stream xzarr_gcs_store::operator[](const std::string& key)
     {
-        return (*this)[key.c_str()];
-    }
-
-    void xzarr_gcs_store::set_root(const char* root)
-    {
-        m_root = root;
+        return xzarr_gcs_stream(m_root + '/' + key);
     }
 
     std::string xzarr_gcs_store::get_root()

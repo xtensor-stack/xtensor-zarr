@@ -26,8 +26,7 @@ namespace xt
     class xzarr_file_system_stream
     {
     public:
-        xzarr_file_system_stream(const char* path);
-        operator std::vector<char>() const;
+        xzarr_file_system_stream(const std::string& path);
         operator std::string() const;
         void operator=(const std::vector<char>& value);
         void operator=(const std::string& value);
@@ -44,11 +43,9 @@ namespace xt
         template <class C>
         using io_handler = xio_disk_handler<C>;
 
-        xzarr_file_system_store(const char* root);
-        xzarr_file_system_stream operator[](const char* key);
+        xzarr_file_system_store(const std::string& root);
         xzarr_file_system_stream operator[](const std::string& key);
 
-        void set_root(const char* root);
         std::string get_root();
 
     private:
@@ -59,19 +56,15 @@ namespace xt
      * xzarr_file_system_stream implementation *
      *******************************************/
 
-    xzarr_file_system_stream::xzarr_file_system_stream(const char* path)
+    xzarr_file_system_stream::xzarr_file_system_stream(const std::string& path)
         : m_path(path)
     {
     }
 
-    xzarr_file_system_stream::operator std::vector<char>() const
+    xzarr_file_system_stream::operator std::string() const
     {
         std::ifstream stream(m_path);
-        std::vector<char> bytes;
-        stream.seekg(0, stream.end);
-        bytes.resize(static_cast<std::size_t>(stream.tellg()));
-        stream.seekg(0, stream.beg);
-        bytes.assign((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+        std::string bytes{std::istreambuf_iterator<char>{stream}, {}};
         return bytes;
     }
 
@@ -113,7 +106,7 @@ namespace xt
      * xzarr_file_system_store implementation *
      ******************************************/
 
-    xzarr_file_system_store::xzarr_file_system_store(const char* root)
+    xzarr_file_system_store::xzarr_file_system_store(const std::string& root)
         : m_root(root)
     {
         if (m_root.empty())
@@ -126,20 +119,9 @@ namespace xt
         }
     }
 
-    xzarr_file_system_stream xzarr_file_system_store::operator[](const char* key)
-    {
-        std::string path = m_root + '/' + key;
-        return xzarr_file_system_stream(path.c_str());
-    }
-
     xzarr_file_system_stream xzarr_file_system_store::operator[](const std::string& key)
     {
-        return (*this)[key.c_str()];
-    }
-
-    void xzarr_file_system_store::set_root(const char* root)
-    {
-        m_root = root;
+        return xzarr_file_system_stream(m_root + '/' + key);
     }
 
     std::string xzarr_file_system_store::get_root()
