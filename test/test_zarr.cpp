@@ -21,6 +21,8 @@
 
 namespace xt
 {
+    namespace fs = ghc::filesystem;
+
     TEST(xzarr_hierarchy, read_array)
     {
         xzarr_register_compressor<xzarr_file_system_store, xio_gzip_config>();
@@ -105,5 +107,35 @@ namespace xt
 
         std::string nodes = h1.get_nodes().dump();
         EXPECT_EQ(nodes, "{\"arthur\":\"implicit_group\",\"arthur/dent\":\"array\",\"marvin\":\"explicit_group\",\"marvin/android\":\"array\",\"marvin/paranoid\":\"explicit_group\",\"tricia\":\"implicit_group\",\"tricia/mcmillan\":\"explicit_group\"}");
+    }
+
+    TEST(xzarr_hierarchy, store_erase)
+    {
+        xzarr_file_system_store store1("store1");
+        std::string ref_data = "some data";
+        store1["key1"] = ref_data;
+        // check that the file has the right content
+        std::ifstream stream1("store1/key1");
+        std::string bytes{std::istreambuf_iterator<char>{stream1}, {}};
+        EXPECT_EQ(bytes, ref_data);
+        store1.erase("key1");
+        // check that the file has been erased
+        EXPECT_EQ(fs::exists("store1/key1"), false);
+    }
+
+    TEST(xzarr_hierarchy, store_delete_prefix)
+    {
+        fs::remove_all("store1");
+        xzarr_file_system_store store1("store1");
+        store1["path_to/key1"] = "some data";
+        store1["path_to/key2"] = "some more data";
+        store1["path_to/key3"] = "even more data";
+        // check that the files have been created
+        EXPECT_EQ(fs::exists("store1/path_to/key1"), true);
+        EXPECT_EQ(fs::exists("store1/path_to/key2"), true);
+        EXPECT_EQ(fs::exists("store1/path_to/key3"), true);
+        store1.delete_prefix("path_to");
+        // check that the directory hase been erased
+        EXPECT_EQ(fs::exists("store1/path_to"), false);
     }
 }

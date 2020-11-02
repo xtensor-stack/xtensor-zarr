@@ -30,6 +30,7 @@ namespace xt
         operator std::string() const;
         void operator=(const std::vector<char>& value);
         void operator=(const std::string& value);
+        void erase();
         bool exists();
 
     private:
@@ -49,6 +50,11 @@ namespace xt
         void list_dir(const std::string& prefix, std::vector<std::string>& keys, std::vector<std::string>& prefixes);
         std::vector<std::string> list();
         std::vector<std::string> list_prefix(const std::string& prefix);
+        void erase(const std::string& key);
+        void delete_prefix(const std::string& prefix);
+        void set(const std::string& key, const std::vector<char>& value);
+        void set(const std::string& key, const std::string& value);
+        std::string get(const std::string& key);
 
         std::string get_root();
 
@@ -63,6 +69,11 @@ namespace xt
     xzarr_file_system_stream::xzarr_file_system_stream(const std::string& path)
         : m_path(path)
     {
+    }
+
+    void xzarr_file_system_stream::erase()
+    {
+        fs::remove(m_path);
     }
 
     bool xzarr_file_system_stream::exists()
@@ -134,6 +145,21 @@ namespace xt
         return xzarr_file_system_stream(m_root + '/' + key);
     }
 
+    void xzarr_file_system_store::set(const std::string& key, const std::vector<char>& value)
+    {
+        xzarr_file_system_stream(m_root + '/' + key) = value;
+    }
+
+    void xzarr_file_system_store::set(const std::string& key, const std::string& value)
+    {
+        xzarr_file_system_stream(m_root + '/' + key) = value;
+    }
+
+    std::string xzarr_file_system_store::get(const std::string& key)
+    {
+        return std::move(xzarr_file_system_stream(m_root + '/' + key));
+    }
+
     std::string xzarr_file_system_store::get_root()
     {
         return m_root;
@@ -171,6 +197,16 @@ namespace xt
             keys.push_back(p.substr(m_root.size() + 1));
         }
         return keys;
+    }
+
+    void xzarr_file_system_store::erase(const std::string& key)
+    {
+        fs::remove(m_root + '/' + key);
+    }
+
+    void xzarr_file_system_store::delete_prefix(const std::string& prefix)
+    {
+        fs::remove_all(m_root + '/' + prefix);
     }
 }
 
