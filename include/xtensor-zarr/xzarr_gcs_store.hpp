@@ -44,7 +44,13 @@ namespace xt
 
         xzarr_gcs_store(const std::string& root, gcs::Client& client);
         xzarr_gcs_stream operator[](const std::string& key);
+        std::vector<std::string> list();
         std::vector<std::string> list_prefix(const std::string& prefix);
+        void erase(const std::string& key);
+        void delete_prefix(const std::string& prefix);
+        void set(const std::string& key, const std::vector<char>& value);
+        void set(const std::string& key, const std::string& value);
+        std::string get(const std::string& key);
 
         xio_gcs_config get_io_config();
         std::string get_root();
@@ -124,6 +130,26 @@ namespace xt
         return xzarr_gcs_stream(m_root + '/' + key, m_bucket, m_client);
     }
 
+    void xzarr_gcs_store::set(const std::string& key, const std::vector<char>& value)
+    {
+        xzarr_gcs_stream(m_root + '/' + key, m_bucket, m_client) = value;
+    }
+
+    void xzarr_gcs_store::set(const std::string& key, const std::string& value)
+    {
+        xzarr_gcs_stream(m_root + '/' + key, m_bucket, m_client) = value;
+    }
+
+    std::string xzarr_gcs_store::get(const std::string& key)
+    {
+        return std::move(xzarr_gcs_stream(m_root + '/' + key, m_bucket, m_client));
+    }
+
+    std::vector<std::string> xzarr_gcs_store::list()
+    {
+        return list_prefix("");
+    }
+
     std::vector<std::string> xzarr_gcs_store::list_prefix(const std::string& prefix)
     {
         std::vector<std::string> keys;
@@ -133,9 +159,29 @@ namespace xt
             {
                 XTENSOR_THROW(std::runtime_error, object_metadata.status().message());
             }
-            keys.push_back(object_metadata->name());
+            auto key = object_metadata->name();
+            key = key.substr(m_root.size() + 1);
+            keys.push_back(key);
         }
+        return keys;
+    }
 
+    void xzarr_gcs_store::erase(const std::string& key)
+    {
+        fs::remove(m_root + '/' + key);
+        google::cloud::Status status = m_client.DeleteObject(m_bucket, m_root + '/' + key);
+        if (!status.ok())
+        {
+            XTENSOR_THROW(std::runtime_error, status.message());
+        }
+    }
+
+    void xzarr_gcs_store::delete_prefix(const std::string& prefix)
+    {
+        for (const auto& key: list_prefix(prefix))
+        {
+            erase(key);
+        }
     }
 
     std::string xzarr_gcs_store::get_root()
