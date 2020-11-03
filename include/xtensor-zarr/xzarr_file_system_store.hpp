@@ -56,6 +56,7 @@ namespace xt
         void set(const std::string& key, const std::string& value);
         std::string get(const std::string& key);
 
+        xio_disk_config get_io_config();
         std::string get_root();
 
     private:
@@ -163,6 +164,12 @@ namespace xt
     std::string xzarr_file_system_store::get_root()
     {
         return m_root;
+    }
+
+    xio_disk_config xzarr_file_system_store::get_io_config()
+    {
+        xio_disk_config c;
+        return c;
     }
 
     void xzarr_file_system_store::list_dir(const std::string& prefix, std::vector<std::string>& keys, std::vector<std::string>& prefixes)

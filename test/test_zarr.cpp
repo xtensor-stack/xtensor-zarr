@@ -59,7 +59,8 @@ namespace xt
     TEST(xzarr_hierarchy, read_array_gcs)
     {
         xzarr_register_compressor<xzarr_gcs_store, xio_gzip_config>();
-        xzarr_gcs_store s("zarr-demo/v3/test.zr3");
+        gcs::Client client(gcs::ClientOptions(gcs::oauth2::CreateAnonymousCredentials()));
+        xzarr_gcs_store s("zarr-demo/v3/test.zr3", client);
         auto h = get_zarr_hierarchy(s);
         zarray z = h.get_array("/arthur/dent");
         auto a = arange(5 * 10).reshape({5, 10});

@@ -23,7 +23,7 @@ namespace xt
     class xzarr_gcs_stream
     {
     public:
-        xzarr_gcs_stream(const std::string& path, const std::string& bucket, gcs::Client client);
+        xzarr_gcs_stream(const std::string& path, const std::string& bucket, gcs::Client& client);
         operator std::string();
         void operator=(const std::vector<char>& value);
         void operator=(const std::string& value);
@@ -33,7 +33,7 @@ namespace xt
 
         std::string m_path;
         std::string m_bucket;
-        gcs::Client m_client;
+        gcs::Client& m_client;
     };
 
     class xzarr_gcs_store
@@ -42,9 +42,11 @@ namespace xt
         template <class C>
         using io_handler = xio_gcs_handler<C>;
 
-        xzarr_gcs_store(const std::string& root, gcs::Client client = gcs::Client(gcs::ClientOptions(gcs::oauth2::CreateAnonymousCredentials())));
+        xzarr_gcs_store(const std::string& root, gcs::Client& client);
         xzarr_gcs_stream operator[](const std::string& key);
+        std::vector<std::string> list_prefix(const std::string& prefix);
 
+        xio_gcs_config get_io_config();
         std::string get_root();
 
     private:
@@ -57,7 +59,7 @@ namespace xt
      * xzarr_gcs_stream implementation *
      ***********************************/
 
-    xzarr_gcs_stream::xzarr_gcs_stream(const std::string& path, const std::string& bucket, gcs::Client client)
+    xzarr_gcs_stream::xzarr_gcs_stream(const std::string& path, const std::string& bucket, gcs::Client& client)
         : m_path(path)
         , m_bucket(bucket)
         , m_client(client)
@@ -92,7 +94,7 @@ namespace xt
      * xzarr_gcs_store implementation *
      **********************************/
 
-    xzarr_gcs_store::xzarr_gcs_store(const std::string& root, gcs::Client client)
+    xzarr_gcs_store::xzarr_gcs_store(const std::string& root, gcs::Client& client)
         : m_root(root)
         , m_client(client)
     {
@@ -122,9 +124,29 @@ namespace xt
         return xzarr_gcs_stream(m_root + '/' + key, m_bucket, m_client);
     }
 
+    std::vector<std::string> xzarr_gcs_store::list_prefix(const std::string& prefix)
+    {
+        std::vector<std::string> keys;
+        for (auto&& object_metadata: m_client.ListObjects(m_bucket, gcs::Prefix(m_root + '/' + prefix)))
+        {
+            if (!object_metadata)
+            {
+                XTENSOR_THROW(std::runtime_error, object_metadata.status().message());
+            }
+            keys.push_back(object_metadata->name());
+        }
+
+    }
+
     std::string xzarr_gcs_store::get_root()
     {
         return m_root;
+    }
+
+    xio_gcs_config xzarr_gcs_store::get_io_config()
+    {
+        xio_gcs_config c = {m_client, m_bucket};
+        return c;
     }
 
 }
