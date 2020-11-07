@@ -1,0 +1,8 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+includedir=${prefix}/include
+
+Name: xtensor
+Description: xtensor-zarr is a C++ library that enables opening and saving Zarr v3 stores to and from xtensor chunked arrays.
+Version: @xtensor-zarr_VERSION@
+Cflags: -I${includedir}

@@ -1,0 +1,18 @@
+name: xtensor-zarr
+channels:
+  - conda-forge
+dependencies:
+  - notebook
+  - xeus-cling=0.9.0
+  - python
+  - bash_kernel
+  - nlohmann_json
+  - cpp-filesystem
+  - cpp-half
+  - google-cloud-cpp
+  - zlib
+  - blosc
+  - allthekernels
+  - fsspec
+  - numcodecs
+  - numpy

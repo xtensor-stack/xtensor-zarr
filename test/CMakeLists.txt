@@ -1,0 +1,131 @@
+############################################################################
+# Copyright (c) Wolf Vollprecht, Johan Mabille, and Sylvain Corlay         #
+# Copyright (c) QuantStack                                                 #
+#                                                                          #
+# Distributed under the terms of the BSD 3-Clause License.                 #
+#                                                                          #
+# The full license is in the file LICENSE, distributed with this software. #
+############################################################################
+
+cmake_minimum_required(VERSION 3.8)
+
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    project(xtensor-zarr-test)
+
+    find_package(xtensor-zarr REQUIRED CONFIG)
+    set(XTENSOR_ZARR_INCLUDE_DIR ${xtensor_INCLUDE_DIRS})
+endif ()
+
+message(STATUS "Forcing tests build type to Release")
+set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build." FORCE)
+
+include(CheckCXXCompilerFlag)
+
+string(TOUPPER "${CMAKE_BUILD_TYPE}" U_CMAKE_BUILD_TYPE)
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Wunused-parameter -Wextra -Wreorder -Wconversion -Wsign-conversion")
+    CHECK_CXX_COMPILER_FLAG("-std=c++14" HAS_CPP14_FLAG)
+
+    if (HAS_CPP14_FLAG)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+    else()
+        message(FATAL_ERROR "Unsupported compiler -- xtensor requires C++14 support!")
+    endif()
+endif()
+
+if(MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /MP /bigobj")
+    set(CMAKE_EXE_LINKER_FLAGS /MANIFEST:NO)
+endif()
+
+if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
+    if(DOWNLOAD_GTEST)
+        # Download and unpack googletest at configure time
+        configure_file(downloadGTest.cmake.in googletest-download/CMakeLists.txt)
+    else()
+        # Copy local source of googletest at configure time
+        configure_file(copyGTest.cmake.in googletest-download/CMakeLists.txt)
+    endif()
+    execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+                    RESULT_VARIABLE result
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
+    if(result)
+        message(FATAL_ERROR "CMake step for googletest failed: ${result}")
+    endif()
+    execute_process(COMMAND ${CMAKE_COMMAND} --build .
+                    RESULT_VARIABLE result
+                    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
+    if(result)
+        message(FATAL_ERROR "Build step for googletest failed: ${result}")
+    endif()
+
+    # Add googletest directly to our build. This defines
+    # the gtest and gtest_main targets.
+    add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
+                     ${CMAKE_CURRENT_BINARY_DIR}/googletest-build EXCLUDE_FROM_ALL)
+
+    set(GTEST_INCLUDE_DIRS "${gtest_SOURCE_DIR}/include")
+    set(GTEST_BOTH_LIBRARIES  gtest_main gtest)
+else()
+    find_package(GTest REQUIRED)
+endif()
+
+find_package(Threads)
+
+set(XTENSOR_ZARR_TESTS
+    main.cpp
+    test_zarr.cpp
+)
+
+## Add files for tests
+#set(XTENSOR_ZARR_FILES
+#    store.zarr
+#)
+#
+#foreach(filename IN LISTS XTENSOR_ZARR_FILES)
+#    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/files/${filename}
+#        ${CMAKE_CURRENT_BINARY_DIR}/files/${filename} COPYONLY)
+#endforeach()
+
+add_library(blosc SHARED IMPORTED)
+set_target_properties(blosc PROPERTIES
+  IMPORTED_LOCATION "$ENV{CONDA_PREFIX}/lib/libblosc.so"
+  INTERFACE_INCLUDE_DIRECTORIES "$ENV{CONDA_PREFIX}/include/"
+)
+
+add_library(zlib SHARED IMPORTED)
+set_target_properties(zlib PROPERTIES
+  IMPORTED_LOCATION "$ENV{CONDA_PREFIX}/lib/libz.so"
+  INTERFACE_INCLUDE_DIRECTORIES "$ENV{CONDA_PREFIX}/include/"
+)
+
+add_executable(test_xtensor_zarr ${XTENSOR_ZARR_TESTS} ${XTENSOR_ZARR_HEADERS})
+if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
+    add_dependencies(test_xtensor_zarr gtest_main)
+endif()
+
+if(DEFINED CMAKE_INSTALL_PREFIX)
+  set_target_properties(test_xtensor_zarr
+    PROPERTIES
+      INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
+      BUILD_WITH_INSTALL_RPATH ON
+  )
+endif()
+
+target_link_libraries(test_xtensor_zarr
+  PUBLIC
+    xtensor-zarr
+    blosc
+    z
+    storage_client absl_time google_cloud_cpp_common crc32c curl crypto absl_str_format_internal absl_strings absl_bad_optional_access
+    ${CMAKE_DL_LIBS}
+    ${GTEST_BOTH_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
+)
+
+target_include_directories(test_xtensor_zarr PRIVATE ${XTENSOR_ZARR_INCLUDE_DIR})
+
+add_custom_target(xtest
+    COMMAND test_xtensor_zarr
+    DEPENDS test_xtensor_zarr)
