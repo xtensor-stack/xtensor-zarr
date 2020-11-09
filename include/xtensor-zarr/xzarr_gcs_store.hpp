@@ -46,6 +46,7 @@ namespace xt
         xzarr_gcs_stream operator[](const std::string& key);
         std::vector<std::string> list();
         std::vector<std::string> list_prefix(const std::string& prefix);
+        void list_dir(const std::string& prefix, std::vector<std::string>& keys, std::vector<std::string>& prefixes);
         void erase(const std::string& key);
         void delete_prefix(const std::string& prefix);
         void set(const std::string& key, const std::vector<char>& value);
@@ -143,6 +144,39 @@ namespace xt
     std::string xzarr_gcs_store::get(const std::string& key)
     {
         return std::move(xzarr_gcs_stream(m_root + '/' + key, m_bucket, m_client));
+    }
+
+    void xzarr_gcs_store::list_dir(const std::string& prefix, std::vector<std::string>& keys, std::vector<std::string>& prefixes)
+    {
+        for (auto&& object_metadata: m_client.ListObjects(m_bucket, gcs::Prefix(m_root + '/' + prefix)))
+        {
+            if (!object_metadata)
+            {
+                XTENSOR_THROW(std::runtime_error, object_metadata.status().message());
+            }
+            auto key = object_metadata->name();
+            key = key.substr(m_root.size() + 1);
+            std::size_t i = key.find('/');
+            if (i == std::string::npos)
+            {
+                keys.push_back(key);
+            }
+            else
+            {
+                key = key.substr(0, i + 1);
+                if (prefixes.size() == 0)
+                {
+                    prefixes.push_back(key);
+                }
+                else
+                {
+                    if (prefixes[prefixes.size() - 1] != key)
+                    {
+                        prefixes.push_back(key);
+                    }
+                }
+            }
+        }
     }
 
     std::vector<std::string> xzarr_gcs_store::list()

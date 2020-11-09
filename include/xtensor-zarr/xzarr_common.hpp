@@ -23,12 +23,14 @@ namespace xt
 
         void set_directory(const std::string& directory);
         void set_separator(const char separator);
+        void set_zarr_version(std::size_t zarr_version);
         template <class I>
         void index_to_path(I first, I last, std::string& path);
 
     private:
         std::string m_directory;
         char m_separator;
+        std::size_t m_zarr_version;
     };
 
     // xzarr_attrs is meant to serve as a base class extension for xchunked_array
@@ -47,7 +49,9 @@ namespace xt
      * xindex_path implementation *
      ******************************/
 
-    xzarr_index_path::xzarr_index_path(): m_separator('/')
+    xzarr_index_path::xzarr_index_path()
+        : m_separator('/')
+        , m_zarr_version(3)
     {
     }
 
@@ -65,6 +69,11 @@ namespace xt
         m_separator = separator;
     }
 
+    void xzarr_index_path::set_zarr_version(std::size_t zarr_version)
+    {
+        m_zarr_version = zarr_version;
+    }
+
     template <class I>
     void xzarr_index_path::index_to_path(I first, I last, std::string& path)
     {
@@ -73,7 +82,10 @@ namespace xt
         {
             if (fname.empty())
             {
-                fname.push_back('c');
+                if (m_zarr_version == 3)
+                {
+                    fname.push_back('c');
+                }
             }
             else
             {
