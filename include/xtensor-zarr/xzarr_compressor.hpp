@@ -18,8 +18,32 @@
 
 namespace xt
 {
+    template <class T>
+    T get_nan()
+    {
+        return 0;
+    }
+
+    template <>
+    float get_nan<float>()
+    {
+        return std::nanf("");
+    }
+
+    template <>
+    double get_nan<double>()
+    {
+        return std::nan("");
+    }
+
+    template <>
+    long double get_nan<long double>()
+    {
+        return std::nanl("");
+    }
+
     template <class store_type, class data_type, class io_handler, class format_config>
-    zarray build_chunked_array_impl(store_type& store, char chunk_memory_layout, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, format_config&& config, const nlohmann::json& config_json, std::size_t chunk_pool_size, const nlohmann::json& fill_value_json)
+    zarray build_chunked_array_impl(store_type& store, char chunk_memory_layout, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, format_config&& config, const nlohmann::json& config_json, std::size_t chunk_pool_size, const nlohmann::json& fill_value_json, std::size_t zarr_version)
     {
         config.read_from(config_json);
         config.big_endian = (endianness == '>');
@@ -38,7 +62,9 @@ namespace xt
         if (fill_value_json.is_null())
         {
             auto a = chunked_file_array<data_type, io_handler, layout_type::dynamic, xzarr_index_path, xzarr_attrs>(shape, chunk_shape, path, chunk_pool_size, layout);
-            a.chunks().get_index_path().set_separator(separator);
+            auto& i2p = a.chunks().get_index_path();
+            i2p.set_separator(separator);
+            i2p.set_zarr_version(zarr_version);
             auto io_config = store.get_io_config();
             a.chunks().configure(config, io_config);
             a.set_attrs(attrs);
@@ -46,9 +72,19 @@ namespace xt
         }
         else
         {
-            data_type fill_value = fill_value_json;
+            data_type fill_value;
+            if (fill_value_json == "NaN")
+            {
+                fill_value = get_nan<data_type>();
+            }
+            else
+            {
+                fill_value = fill_value_json;
+            }
             auto a = chunked_file_array<data_type, io_handler, layout_type::dynamic, xzarr_index_path, xzarr_attrs>(shape, chunk_shape, path, fill_value, chunk_pool_size, layout);
-            a.chunks().get_index_path().set_separator(separator);
+            auto& i2p = a.chunks().get_index_path();
+            i2p.set_separator(separator);
+            i2p.set_zarr_version(zarr_version);
             auto io_config = store.get_io_config();
             a.chunks().configure(config, io_config);
             a.set_attrs(attrs);
@@ -57,10 +93,10 @@ namespace xt
     }
 
     template <class store_type, class data_type, class format_config>
-    zarray build_chunked_array_with_compressor(store_type& store, char chunk_memory_layout, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, nlohmann::json& config, std::size_t chunk_pool_size, const nlohmann::json& fill_value_json)
+    zarray build_chunked_array_with_compressor(store_type& store, char chunk_memory_layout, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, nlohmann::json& config, std::size_t chunk_pool_size, const nlohmann::json& fill_value_json, std::size_t zarr_version)
     {
         using io_handler = typename store_type::template io_handler<format_config>;
-        return build_chunked_array_impl<store_type, data_type, io_handler>(store, chunk_memory_layout, shape, chunk_shape, path, separator, attrs, endianness, format_config(), config, chunk_pool_size, fill_value_json);
+        return build_chunked_array_impl<store_type, data_type, io_handler>(store, chunk_memory_layout, shape, chunk_shape, path, separator, attrs, endianness, format_config(), config, chunk_pool_size, fill_value_json, zarr_version);
     }
 
     template <class store_type, class data_type>
@@ -71,21 +107,20 @@ namespace xt
         template <class format_config>
         static void add_compressor(format_config&& c)
         {
-            const char* name = c.name;
-            auto fun = instance().m_builders.find(name);
+            auto fun = instance().m_builders.find(c.name);
             if (fun != instance().m_builders.end())
             {
-                XTENSOR_THROW(std::runtime_error, "Compressor already registered: " + std::string(name));
+                XTENSOR_THROW(std::runtime_error, "Compressor already registered: " + std::string(c.name));
             }
-            instance().m_builders.insert(std::make_pair(name, &build_chunked_array_with_compressor<store_type, data_type, format_config>));
+            instance().m_builders.insert(std::make_pair(c.name, &build_chunked_array_with_compressor<store_type, data_type, format_config>));
         }
 
-        static zarray build(store_type& store, const std::string& compressor, char chunk_memory_layout, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, nlohmann::json& config, std::size_t chunk_pool_size, const nlohmann::json& fill_value_json)
+        static zarray build(store_type& store, const std::string& compressor, char chunk_memory_layout, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, nlohmann::json& config, std::size_t chunk_pool_size, const nlohmann::json& fill_value_json, std::size_t zarr_version)
         {
             auto fun = instance().m_builders.find(compressor);
             if (fun != instance().m_builders.end())
             {
-                zarray z = (fun->second)(store, chunk_memory_layout, shape, chunk_shape, path, separator, attrs, endianness, config, chunk_pool_size, fill_value_json);
+                zarray z = (fun->second)(store, chunk_memory_layout, shape, chunk_shape, path, separator, attrs, endianness, config, chunk_pool_size, fill_value_json, zarr_version);
                 return z;
             }
             else
@@ -110,7 +145,7 @@ namespace xt
             m_builders.insert(std::make_pair(format_config().name, &build_chunked_array_with_compressor<store_type, data_type, format_config>));
         }
 
-        std::map<std::string, zarray (*)(store_type& store, char chunk_memory_layout, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, nlohmann::json& config, std::size_t chunk_pool_size, const nlohmann::json& fill_value_json)> m_builders;
+        std::map<std::string, zarray (*)(store_type& store, char chunk_memory_layout, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, nlohmann::json& config, std::size_t chunk_pool_size, const nlohmann::json& fill_value_json, std::size_t zarr_version)> m_builders;
     };
 
     template <class store_type, class format_config>

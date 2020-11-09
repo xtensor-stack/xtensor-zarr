@@ -18,9 +18,9 @@
 namespace xt
 {
     template <class store_type, class data_type>
-    zarray build_chunked_array_with_dtype(store_type& store, const std::string& compressor, char chunk_memory_layout, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, nlohmann::json& config, std::size_t chunk_pool_size, const nlohmann::json& fill_value_json)
+    zarray build_chunked_array_with_dtype(store_type& store, const std::string& compressor, char chunk_memory_layout, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, nlohmann::json& config, std::size_t chunk_pool_size, const nlohmann::json& fill_value_json, std::size_t zarr_version)
     {
-        return xcompressor_factory<store_type, data_type>::build(store, compressor, chunk_memory_layout, shape, chunk_shape, path, separator, attrs, endianness, config, chunk_pool_size, fill_value_json);
+        return xcompressor_factory<store_type, data_type>::build(store, compressor, chunk_memory_layout, shape, chunk_shape, path, separator, attrs, endianness, config, chunk_pool_size, fill_value_json, zarr_version);
     }
 
     template <class store_type>
@@ -39,7 +39,7 @@ namespace xt
             instance().m_builders.insert(std::make_pair(name, &build_chunked_array_with_dtype<store_type, data_type>));
         }
 
-        static zarray build(store_type& store, const std::string& compressor, const std::string& dtype, char chunk_memory_layout, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, nlohmann::json& config, std::size_t chunk_pool_size, const nlohmann::json& fill_value_json)
+        static zarray build(store_type& store, const std::string& compressor, const std::string& dtype, char chunk_memory_layout, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, nlohmann::json& config, std::size_t chunk_pool_size, const nlohmann::json& fill_value_json, std::size_t zarr_version)
         {
             std::string dtype_noendian = dtype;
             char endianness = dtype[0];
@@ -50,7 +50,7 @@ namespace xt
             auto fun = instance().m_builders.find(dtype_noendian);
             if (fun != instance().m_builders.end())
             {
-                zarray z = (fun->second)(store, compressor, chunk_memory_layout, shape, chunk_shape, path, separator, attrs, endianness, config, chunk_pool_size, fill_value_json);
+                zarray z = (fun->second)(store, compressor, chunk_memory_layout, shape, chunk_shape, path, separator, attrs, endianness, config, chunk_pool_size, fill_value_json, zarr_version);
                 return z;
             }
             else
@@ -88,7 +88,7 @@ namespace xt
             m_builders.insert(std::make_pair("f8", &build_chunked_array_with_dtype<store_type, double>));
         }
 
-        std::map<std::string, zarray (*)(store_type& store, const std::string& compressor, char chunk_memory_layout, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, nlohmann::json& config, std::size_t chunk_pool_size, const nlohmann::json& fill_value_json)> m_builders;
+        std::map<std::string, zarray (*)(store_type& store, const std::string& compressor, char chunk_memory_layout, std::vector<std::size_t>& shape, std::vector<std::size_t>& chunk_shape, const std::string& path, char separator, const nlohmann::json& attrs, char endianness, nlohmann::json& config, std::size_t chunk_pool_size, const nlohmann::json& fill_value_json, std::size_t zarr_version)> m_builders;
     };
 }
 

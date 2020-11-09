@@ -32,7 +32,7 @@ namespace xt
     class xzarr_hierarchy
     {
     public:
-        xzarr_hierarchy(store_type& store);
+        xzarr_hierarchy(store_type& store, const std::string& zarr_version = "3");
 
         void create_hierarchy();
 
@@ -50,6 +50,7 @@ namespace xt
 
     private:
         store_type& m_store;
+        std::string m_zarr_version;
     };
 
     /**********************************
@@ -57,8 +58,9 @@ namespace xt
      **********************************/
 
     template <class store_type>
-    xzarr_hierarchy<store_type>::xzarr_hierarchy(store_type& store)
+    xzarr_hierarchy<store_type>::xzarr_hierarchy(store_type& store, const std::string& zarr_version)
         : m_store(store)
+        , m_zarr_version(zarr_version)
     {
     }
 
@@ -84,7 +86,7 @@ namespace xt
     template <class store_type>
     zarray xzarr_hierarchy<store_type>::get_array(const std::string& path, std::size_t chunk_pool_size)
     {
-        return get_zarr_array(m_store, path, chunk_pool_size);
+        return get_zarr_array(m_store, path, chunk_pool_size, m_zarr_version);
     }
 
     template <class store_type>
@@ -141,13 +143,14 @@ namespace xt
      * @tparam store_type The type of the store (e.g. xzarr_file_system_store)
      *
      * @param store The hierarchy store
+     * @param zarr_version The version of the Zarr specification for the store
      *
      * @return returns a ``xzarr_hierarchy`` handler.
      */
     template <class store_type>
-    xzarr_hierarchy<store_type> get_zarr_hierarchy(store_type& store)
+    xzarr_hierarchy<store_type> get_zarr_hierarchy(store_type& store, const std::string& zarr_version = "3")
     {
-        xzarr_hierarchy<store_type> h(store);
+        xzarr_hierarchy<store_type> h(store, zarr_version);
         return h;
     }
 }
