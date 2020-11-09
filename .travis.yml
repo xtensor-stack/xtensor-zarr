@@ -5,9 +5,9 @@ matrix:
   fast_finish: true
   include:
     - os: linux
-    #- os: osx
-    #  osx_image: xcode9
-    #  compiler: clang
+    - os: osx
+      osx_image: xcode9
+      compiler: clang
 env:
   global:
     - MINCONDA_VERSION="latest"
