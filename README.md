@@ -1,6 +1,6 @@
 # xtensor-zarr
 
-[![Travis](https://travis-ci.org/xtensor-stack/xtensor-zarr.svg?branch=master)](https://travis-ci.org/xtensor-stack/xtensor-zarr)
+[![Travis](https://travis-ci.com/xtensor-stack/xtensor-zarr.svg?branch=master)](https://travis-ci.com/xtensor-stack/xtensor-zarr)
 [![ReadTheDocs](https://readthedocs.org/projects/xtensor-zarr/badge/?version=stable)](http://xtensor-zarr.readthedocs.io/en/stable/)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/xtensor-stack/xtensor-zarr/master?filepath=examples%2Fintroduction.ipynb)
 [![Join the Gitter Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/QuantStack/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
