@@ -35,7 +35,7 @@ install:
     # Install mamba
     - conda install mamba -c conda-forge
     # Install host dependencies
-    - mamba create -n test nlohmann_json google-cloud-cpp cpp-filesystem zlib blosc python fsspec numpy numcodecs sh -c conda-forge
+    - mamba create -n test nlohmann_json google-cloud-cpp cpp-filesystem zlib xtensor-io python fsspec numpy numcodecs sh -c conda-forge
     # Install build dependencies
     - mamba install -n test cmake -c conda-forge
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -43,29 +43,12 @@ install:
       fi
     # Activate test environment
     - source activate test
-    # Install development versions
-    - mkdir dev_tmp
+    # Install development version of zarrita
+    - mkdir dev_tmp	
     - cd dev_tmp
-    # xtensor
-    - wget https://github.com/xtensor-stack/xtensor/archive/master.tar.gz -O xtensor.tar.gz -q
-    - mkdir xtensor
-    - tar zxf xtensor.tar.gz -C xtensor --strip-components 1
-    # xtensor-io
-    - wget https://github.com/xtensor-stack/xtensor-io/archive/master.tar.gz -O xtensor-io.tar.gz -q
-    - mkdir xtensor-io
-    - tar zxf xtensor-io.tar.gz -C xtensor-io --strip-components 1
-    # xtl
-    - wget https://github.com/xtensor-stack/xtl/archive/master.tar.gz -O xtl.tar.gz -q
-    - mkdir xtl
-    - tar zxf xtl.tar.gz -C xtl --strip-components 1
-    # zarrita
     - wget https://github.com/alimanfoo/zarrita/archive/master.tar.gz -O zarrita.tar.gz -q
     - mkdir zarrita
     - tar zxf zarrita.tar.gz -C zarrita --strip-components 1
-    # move to conda environment
-    - mv xtensor/include/xtensor $CONDA_PREFIX/include/
-    - mv xtensor-io/include/xtensor-io $CONDA_PREFIX/include/
-    - mv xtl/include/xtl $CONDA_PREFIX/include/
     - mv zarrita/zarrita.py ../test
     - cd ..
     # Build

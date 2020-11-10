@@ -30,11 +30,15 @@ message(STATUS "Building xtensor-zarr v${${PROJECT_NAME}_VERSION}")
 # ============
 
 # Use development version of xtensor and xtensor-io for now
-#find_package(xtensor 0.21.2 REQUIRED)
-#find_package(xtl 0.6.9 REQUIRED)
+find_package(xtensor-io 0.10.1 REQUIRED)
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
 message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
+
+#Remove the following lines when xtensor-io is fixed
+include(CMakeFindDependencyMacro)
+find_dependency(xtensor REQUIRED)
+find_dependency(xtl REQUIRED)
 
 # Build
 # =====
@@ -62,15 +66,14 @@ add_library(xtensor-zarr INTERFACE)
 include_directories(${GTEST_INCLUDE_DIRS})
 
 target_include_directories(xtensor-zarr
-  INTERFACE
+    INTERFACE
     $<BUILD_INTERFACE:${XTENSOR_ZARR_INCLUDE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
 
 target_link_libraries(xtensor-zarr
-  INTERFACE
-    #xtl
-    #xtensor
+    INTERFACE
+    xtensor-io
     nlohmann_json::nlohmann_json
 )
 
