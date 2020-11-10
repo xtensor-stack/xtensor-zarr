@@ -29,10 +29,11 @@ message(STATUS "Building xtensor-zarr v${${PROJECT_NAME}_VERSION}")
 # Dependencies
 # ============
 
-# Use development version of xtensor and xtensor-io for now
-find_package(xtensor-io 0.10.1 REQUIRED)
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake")
+
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
+find_package(xtensor-io 0.10.1 REQUIRED)
 message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
 
 #Remove the following lines when xtensor-io is fixed
@@ -44,17 +45,17 @@ find_dependency(xtl REQUIRED)
 # =====
 
 set(XTENSOR_ZARR_HEADERS
-  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor-zarr.hpp
-  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_hierarchy.hpp
-  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_node.hpp
-  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_group.hpp
-  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_array.hpp
-  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_file_system_store.hpp
-  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_gcs_store.hpp
-  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_common.hpp
-  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_compressor.hpp
-  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_chunked_array.hpp
-  ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config.hpp
+    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor-zarr.hpp
+    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_hierarchy.hpp
+    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_node.hpp
+    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_group.hpp
+    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_array.hpp
+    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_file_system_store.hpp
+    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_gcs_store.hpp
+    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_common.hpp
+    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_compressor.hpp
+    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_chunked_array.hpp
+    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config.hpp
 )
 
 OPTION(BUILD_TESTS "xtensor-zarr test suite" OFF)
@@ -62,8 +63,7 @@ OPTION(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
 OPTION(DOWNLOAD_GBENCHMARK "download google benchmark and build from source" ON)
 
 add_library(xtensor-zarr INTERFACE)
-
-include_directories(${GTEST_INCLUDE_DIRS})
+target_link_libraries(xtensor-zarr INTERFACE xtensor-io)
 
 target_include_directories(xtensor-zarr
     INTERFACE
@@ -71,11 +71,38 @@ target_include_directories(xtensor-zarr
     $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(xtensor-zarr
-    INTERFACE
-    xtensor-io
-    nlohmann_json::nlohmann_json
-)
+message(STATUS "Trying to find Blosc for Blosc file support")
+find_package(Blosc)
+if (${Blosc_FOUND})
+    message(STATUS "Blosc found, Blosc file support enabled")
+    include_directories(${Blosc_INCLUDE_DIRS})
+    target_include_directories(xtensor-zarr
+        INTERFACE
+        $<BUILD_INTERFACE:${Blosc_INCLUDE_DIRS}>
+    )
+    target_link_libraries(xtensor-zarr
+        INTERFACE
+        ${Blosc_LIBRARIES}
+    )
+else()
+    message(WARNING "Blosc not found - install blosc for Blosc file support")
+endif()
+
+find_package(storage_client)
+message(STATUS "Trying to find Google Cloud Storage for GCS IO handler support")
+if(${storage_client_FOUND})
+    message(STATUS "storage_client ${storage_client_VERSION} found, GCS IO handler support enabled")
+    target_include_directories(xtensor-zarr
+        INTERFACE
+        ${storage_client_INCLUDE_DIRS}
+    )
+    target_link_libraries(xtensor-zarr
+        INTERFACE
+        storage_client
+    )
+else()
+    message(WARNING "Google Cloud Storage not found - install google-cloud-cpp for GCS IO handler support")
+endif()
 
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     set(BUILD_TESTS ON)

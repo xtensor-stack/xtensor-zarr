@@ -73,31 +73,11 @@ endif()
 
 find_package(Threads)
 
+include_directories(${GTEST_INCLUDE_DIRS} SYSTEM)
+
 set(XTENSOR_ZARR_TESTS
     main.cpp
     test_zarr.cpp
-)
-
-## Add files for tests
-#set(XTENSOR_ZARR_FILES
-#    store.zarr
-#)
-#
-#foreach(filename IN LISTS XTENSOR_ZARR_FILES)
-#    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/files/${filename}
-#        ${CMAKE_CURRENT_BINARY_DIR}/files/${filename} COPYONLY)
-#endforeach()
-
-add_library(blosc SHARED IMPORTED)
-set_target_properties(blosc PROPERTIES
-  IMPORTED_LOCATION "$ENV{CONDA_PREFIX}/lib/libblosc.so"
-  INTERFACE_INCLUDE_DIRECTORIES "$ENV{CONDA_PREFIX}/include/"
-)
-
-add_library(zlib SHARED IMPORTED)
-set_target_properties(zlib PROPERTIES
-  IMPORTED_LOCATION "$ENV{CONDA_PREFIX}/lib/libz.so"
-  INTERFACE_INCLUDE_DIRECTORIES "$ENV{CONDA_PREFIX}/include/"
 )
 
 add_executable(test_xtensor_zarr ${XTENSOR_ZARR_TESTS} ${XTENSOR_ZARR_HEADERS})
@@ -106,19 +86,18 @@ if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
 endif()
 
 if(DEFINED CMAKE_INSTALL_PREFIX)
-  set_target_properties(test_xtensor_zarr
-    PROPERTIES
-      INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
-      BUILD_WITH_INSTALL_RPATH ON
-  )
+    set_target_properties(test_xtensor_zarr
+        PROPERTIES
+        INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}"
+        BUILD_WITH_INSTALL_RPATH ON
+    )
 endif()
 
 target_link_libraries(test_xtensor_zarr
-  PUBLIC
+    PUBLIC
     xtensor-zarr
-    blosc
-    z
-    storage_client absl_time google_cloud_cpp_common crc32c curl crypto absl_str_format_internal absl_strings absl_bad_optional_access
+    #z
+    #storage_client absl_time google_cloud_cpp_common crc32c curl crypto absl_str_format_internal absl_strings absl_bad_optional_access
     ${CMAKE_DL_LIBS}
     ${GTEST_BOTH_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
