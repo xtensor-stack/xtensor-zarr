@@ -13,7 +13,7 @@
 #include "xzarr_common.hpp"
 #include "xtensor-io/xchunk_store_manager.hpp"
 #include "xtensor-io/xio_binary.hpp"
-#include "xtensor/zarray.hpp"
+#include "zarray/zarray.hpp"
 #include "xtl/xhalf_float.hpp"
 
 namespace xt

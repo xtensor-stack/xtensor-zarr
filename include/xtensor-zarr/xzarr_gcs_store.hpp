@@ -202,7 +202,6 @@ namespace xt
 
     void xzarr_gcs_store::erase(const std::string& key)
     {
-        fs::remove(m_root + '/' + key);
         google::cloud::Status status = m_client.DeleteObject(m_bucket, m_root + '/' + key);
         if (!status.ok())
         {
