@@ -11,7 +11,7 @@
 #define XTENSOR_ZARR_HIERARCHY_HPP
 
 #include "nlohmann/json.hpp"
-#include "xtensor/zarray.hpp"
+#include "zarray/zarray.hpp"
 #include "xzarr_node.hpp"
 #include "xzarr_array.hpp"
 #include "xzarr_group.hpp"

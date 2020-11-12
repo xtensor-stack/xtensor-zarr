@@ -11,7 +11,7 @@
 #define XTENSOR_ZARR_CHUNKED_ARRAY_HPP
 
 #include "xtensor/xchunked_array.hpp"
-#include "xtensor/zarray.hpp"
+#include "zarray/zarray.hpp"
 #include "xzarr_common.hpp"
 #include "xzarr_compressor.hpp"
 
@@ -43,7 +43,11 @@ namespace xt
         {
             std::string dtype_noendian = dtype;
             char endianness = dtype[0];
-            if ((dtype[0] == '<') || ((dtype[0] == '>')))
+            if ((dtype[0] == '<') || (dtype[0] == '>'))
+            {
+                dtype_noendian = dtype.substr(1);
+            }
+            else if ((zarr_version == 2) && (dtype[0] == '|'))
             {
                 dtype_noendian = dtype.substr(1);
             }

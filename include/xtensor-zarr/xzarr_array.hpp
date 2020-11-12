@@ -11,7 +11,7 @@
 #define XTENSOR_ZARR_ARRAY_HPP
 
 #include "nlohmann/json.hpp"
-#include "xtensor/zarray.hpp"
+#include "zarray/zarray.hpp"
 #include "xtensor-io/xio_binary.hpp"
 #include "xzarr_chunked_array.hpp"
 
