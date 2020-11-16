@@ -35,7 +35,7 @@ install:
     # Install mamba
     - conda install mamba -c conda-forge
     # Install host dependencies
-    - mamba create -n test nlohmann_json google-cloud-cpp cpp-filesystem zlib xtensor-io zarray python fsspec numpy numcodecs sh -c conda-forge
+    - mamba create -n test nlohmann_json google-cloud-cpp aws-sdk-cpp cpp-filesystem zlib xtensor-io zarray python fsspec numpy numcodecs sh -c conda-forge
     # Install build dependencies
     - mamba install -n test cmake -c conda-forge
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -44,7 +44,7 @@ install:
     # Activate test environment
     - source activate test
     # Install development version of zarrita
-    - mkdir dev_tmp	
+    - mkdir dev_tmp
     - cd dev_tmp
     - wget https://github.com/alimanfoo/zarrita/archive/master.tar.gz -O zarrita.tar.gz -q
     - mkdir zarrita

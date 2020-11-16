@@ -48,7 +48,7 @@ namespace xt
         std::vector<std::string> list_prefix(const std::string& prefix);
         void list_dir(const std::string& prefix, std::vector<std::string>& keys, std::vector<std::string>& prefixes);
         void erase(const std::string& key);
-        void delete_prefix(const std::string& prefix);
+        void erase_prefix(const std::string& prefix);
         void set(const std::string& key, const std::vector<char>& value);
         void set(const std::string& key, const std::string& value);
         std::string get(const std::string& key);
@@ -209,7 +209,7 @@ namespace xt
         }
     }
 
-    void xzarr_gcs_store::delete_prefix(const std::string& prefix)
+    void xzarr_gcs_store::erase_prefix(const std::string& prefix)
     {
         for (const auto& key: list_prefix(prefix))
         {
