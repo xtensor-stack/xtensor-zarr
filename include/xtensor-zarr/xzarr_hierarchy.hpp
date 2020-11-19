@@ -15,6 +15,7 @@
 #include "xzarr_node.hpp"
 #include "xzarr_array.hpp"
 #include "xzarr_group.hpp"
+#include "xzarr_common.hpp"
 
 namespace xt
 {
@@ -67,20 +68,23 @@ namespace xt
     template <class store_type>
     void xzarr_hierarchy<store_type>::create_hierarchy()
     {
-        nlohmann::json j;
-        j["zarr_format"] = "https://purl.org/zarr/spec/protocol/core/3.0";
-        j["metadata_encoding"] = "https://purl.org/zarr/spec/protocol/core/3.0";
-        j["metadata_key_suffix"] = ".json";
-        j["extensions"] = nlohmann::json::array();
+        if (get_zarr_major(m_zarr_version) == 3)
+        {
+            nlohmann::json j;
+            j["zarr_format"] = "https://purl.org/zarr/spec/protocol/core/3.0";
+            j["metadata_encoding"] = "https://purl.org/zarr/spec/protocol/core/3.0";
+            j["metadata_key_suffix"] = ".json";
+            j["extensions"] = nlohmann::json::array();
 
-        m_store["zarr.json"] = j.dump(4);
+            m_store["zarr.json"] = j.dump(4);
+        }
     }
 
     template <class store_type>
     template <class shape_type, class C>
     zarray xzarr_hierarchy<store_type>::create_array(const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout, char chunk_separator, const C& compressor, const nlohmann::json& attrs, std::size_t chunk_pool_size, const nlohmann::json& fill_value)
     {
-        return create_zarr_array(m_store, path, shape, chunk_shape, dtype, chunk_memory_layout, chunk_separator, compressor, attrs, chunk_pool_size, fill_value);
+        return create_zarr_array(m_store, path, shape, chunk_shape, dtype, chunk_memory_layout, chunk_separator, compressor, attrs, chunk_pool_size, fill_value, m_zarr_version);
     }
 
     template <class store_type>
@@ -129,9 +133,9 @@ namespace xt
      * @return returns a ``xzarr_hierarchy`` handler.
      */
     template <class store_type>
-    xzarr_hierarchy<store_type> create_zarr_hierarchy(store_type& store)
+    xzarr_hierarchy<store_type> create_zarr_hierarchy(store_type& store, const std::string& zarr_version = "3")
     {
-        xzarr_hierarchy<store_type> h(store);
+        xzarr_hierarchy<store_type> h(store, zarr_version);
         h.create_hierarchy();
         return h;
     }
@@ -148,9 +152,28 @@ namespace xt
      * @return returns a ``xzarr_hierarchy`` handler.
      */
     template <class store_type>
-    xzarr_hierarchy<store_type> get_zarr_hierarchy(store_type& store, const std::string& zarr_version = "3")
+    xzarr_hierarchy<store_type> get_zarr_hierarchy(store_type& store, const std::string& zarr_version = "0")
     {
-        xzarr_hierarchy<store_type> h(store, zarr_version);
+        std::string zarr_ver;
+        if (zarr_version == "0")
+        {
+            std::vector<std::string> keys;
+            std::vector<std::string> prefixes;
+            store.list_dir("/", keys, prefixes);
+            if (std::count(keys.begin(), keys.end(), "zarr.json"))
+            {
+                zarr_ver = "3";
+            }
+            else
+            {
+                zarr_ver = "2";
+            }
+        }
+        else
+        {
+            zarr_ver = zarr_version;
+        }
+        xzarr_hierarchy<store_type> h(store, zarr_ver);
         return h;
     }
 }

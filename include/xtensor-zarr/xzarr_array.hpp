@@ -14,58 +14,90 @@
 #include "zarray/zarray.hpp"
 #include "xtensor-io/xio_binary.hpp"
 #include "xzarr_chunked_array.hpp"
+#include "xzarr_common.hpp"
 
 namespace xt
 {
     template <class store_type, class shape_type, class C>
-    zarray create_zarr_array(store_type store, const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout, char chunk_separator, const C& compressor, const nlohmann::json& attrs, std::size_t chunk_pool_size, const nlohmann::json& fill_value)
+    zarray create_zarr_array(store_type store, const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout, char chunk_separator, const C& compressor, const nlohmann::json& attrs, std::size_t chunk_pool_size, const nlohmann::json& fill_value, const std::string& zarr_version = "3")
     {
+        std::size_t zarr_major = get_zarr_major(zarr_version);
         nlohmann::json j;
-        j["shape"] = shape;
-        j["chunk_grid"]["type"] = "regular";
-        j["chunk_grid"]["chunk_shape"] = chunk_shape;
-        j["chunk_grid"]["separator"] = std::string(1, chunk_separator);
-        j["attributes"] = attrs;
-        j["data_type"] = dtype;
-        j["chunk_memory_layout"] = std::string(1, chunk_memory_layout);
         nlohmann::json compressor_config;
-        if (compressor.name != "binary")
+        switch (zarr_major)
         {
-            j["compressor"]["codec"] ="https://purl.org/zarr/spec/codec/" + compressor.name + "/1.0";
-            compressor.write_to(compressor_config);
-            j["compressor"]["configuration"] = compressor_config;
+            case 3:
+                j["chunk_grid"]["type"] = "regular";
+                j["chunk_grid"]["chunk_shape"] = chunk_shape;
+                j["chunk_grid"]["separator"] = std::string(1, chunk_separator);
+                j["data_type"] = dtype;
+                j["chunk_memory_layout"] = std::string(1, chunk_memory_layout);
+                if (compressor.name != "binary")
+                {
+                    j["compressor"]["codec"] = "https://purl.org/zarr/spec/codec/" + compressor.name + "/1.0";
+                    compressor.write_to(compressor_config);
+                    j["compressor"]["configuration"] = compressor_config;
+                }
+                j["attributes"] = attrs;
+                j["extensions"] = nlohmann::json::array();
+                break;
+            case 2:
+                j["chunks"] = chunk_shape;
+                chunk_separator = '.';
+                j["dtype"] = dtype;
+                j["order"] = std::string(1, chunk_memory_layout);
+                if (compressor.name != "binary")
+                {
+                    compressor.write_to(compressor_config);
+                    j["compressor"] = compressor_config;
+                    j["compressor"]["id"] = compressor.name;
+                }
+                j["filters"] = nlohmann::json();
+                j["zarr_format"] = 2;
+                break;
+            default:
+                break;
         }
+        j["shape"] = shape;
         j["fill_value"] = fill_value;
-        j["extensions"] = nlohmann::json::array();
-        store[std::string("meta/root") + path + ".array.json"] = j.dump(4);
-        std::string full_path = store.get_root() + "/data/root" + path;
+        std::string full_path;
+        switch (zarr_major)
+        {
+            case 3:
+                store["meta/root" + path + ".array.json"] = j.dump(4);
+                full_path = store.get_root() + "/data/root" + path;
+                break;
+            case 2:
+                store[path + "/.zarray"] = j.dump(4);
+                full_path = store.get_root() + '/' + path;
+                if (!attrs.empty())
+                {
+                    store[path + "/.zattrs"] = attrs.dump(4);
+                }
+                break;
+            default:
+                break;
+        }
         return xchunked_array_factory<store_type>::build(store, compressor.name, dtype, chunk_memory_layout, shape, chunk_shape, full_path, chunk_separator, attrs, compressor_config, chunk_pool_size, fill_value, 3);
     }
 
     template <class store_type>
     zarray get_zarr_array(store_type store, const std::string& path, std::size_t chunk_pool_size, const std::string& zarr_version = "3")
     {
-        std::size_t i = zarr_version.find('.');
-        std::size_t zarr_major;
-        if (i == std::string::npos)
-        {
-            zarr_major = std::stoi(zarr_version);
-        }
-        else
-        {
-            zarr_major = std::stoi(zarr_version.substr(0, i));
-        }
+        std::size_t zarr_major = get_zarr_major(zarr_version);
         std::string s;
+        nlohmann::json attrs;
         switch (zarr_major)
         {
             case 3:
                 s = store[std::string("meta/root") + path + ".array.json"];
                 break;
             case 2:
-                s = store[".zarray"];
+                s = store[path + "/.zarray"];
+                attrs = std::string(store[path + "/.zattrs"]);
                 break;
             default:
-                XTENSOR_THROW(std::runtime_error, "Unsupported Zarr version: " + zarr_version);
+                break;
         }
         auto j = nlohmann::json::parse(s);
         auto json_shape = j["shape"];
@@ -85,6 +117,7 @@ namespace xt
                 if (j.contains("compressor"))
                 {
                     compressor = j["compressor"]["codec"];
+                    std::size_t i;
                     i = compressor.rfind('/');
                     compressor = compressor.substr(0, i);
                     i = compressor.rfind('/') + 1;
@@ -97,6 +130,7 @@ namespace xt
                 }
                 chunk_separator = j["chunk_grid"]["separator"];
                 full_path = store.get_root() + "/data/root" + path;
+                attrs = j["attributes"];
                 break;
             case 2:
                 json_chunk_shape = j["chunks"];
@@ -117,7 +151,7 @@ namespace xt
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
         std::transform(json_chunk_shape.begin(), json_chunk_shape.end(), chunk_shape.begin(),
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
-        return xchunked_array_factory<store_type>::build(store, compressor, dtype, chunk_memory_layout[0], shape, chunk_shape, full_path, chunk_separator[0], j["attributes"], compressor_config, chunk_pool_size, j["fill_value"], zarr_major);
+        return xchunked_array_factory<store_type>::build(store, compressor, dtype, chunk_memory_layout[0], shape, chunk_shape, full_path, chunk_separator[0], attrs, compressor_config, chunk_pool_size, j["fill_value"], zarr_major);
     }
 }
 

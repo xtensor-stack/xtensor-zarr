@@ -23,9 +23,20 @@ namespace xt
 {
     namespace fs = ghc::filesystem;
 
-    TEST(xzarr_hierarchy, read_array)
+    TEST(xzarr_hierarchy, read_v2)
     {
         xzarr_register_compressor<xzarr_file_system_store, xio_gzip_config>();
+        xzarr_file_system_store s("h_zarr.zr2");
+        auto h = get_zarr_hierarchy(s);
+        zarray z = h.get_array("/arthur/dent");
+        auto ref = arange(2 * 5).reshape({2, 5});
+        auto a = z.get_array<double>();
+        EXPECT_EQ(xt::view(a, xt::range(0, 2), xt::range(0, 5)), ref);
+        EXPECT_EQ(a(2, 0), 5.5);
+    }
+
+    TEST(xzarr_hierarchy, read_array)
+    {
         xzarr_file_system_store s("h_zarrita.zr3");
         auto h = get_zarr_hierarchy(s);
         zarray z = h.get_array("/arthur/dent");
@@ -166,5 +177,18 @@ namespace xt
             // we don't have rights to erase objects in this bucket as an anonymous client
             EXPECT_THROW(s2.erase(keys2[i]), std::runtime_error);
         }
+    }
+
+    TEST(xzarr_hierarchy, write_v2)
+    {
+        std::vector<size_t> shape = {4, 4};
+        std::vector<size_t> chunk_shape = {2, 2};
+        nlohmann::json attrs = {{"question", "life"}, {"answer", 42}};
+        std::size_t pool_size = 1;
+        double fill_value = 6.6;
+        std::string zarr_version = "2";
+        xzarr_file_system_store s("h_xtensor.zr2");
+        auto h = create_zarr_hierarchy(s, zarr_version);
+        zarray z1 = h.create_array("/arthur/dent", shape, chunk_shape, "<f8", 'C', '.', xio_gzip_config(), attrs, pool_size, fill_value);
     }
 }

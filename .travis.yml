@@ -35,7 +35,7 @@ install:
     # Install mamba
     - conda install mamba -c conda-forge
     # Install host dependencies
-    - mamba create -n test nlohmann_json google-cloud-cpp aws-sdk-cpp cpp-filesystem zlib xtensor-io zarray python fsspec numpy numcodecs sh -c conda-forge
+    - mamba create -n test nlohmann_json google-cloud-cpp aws-sdk-cpp cpp-filesystem zlib xtensor-io zarray python fsspec numpy numcodecs zarr -c conda-forge
     # Install build dependencies
     - mamba install -n test cmake -c conda-forge
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
@@ -61,5 +61,7 @@ install:
     - cd test
 script:
     - python ../../test/zarrita_write.py
+    - python ../../test/zarr_write.py
     - ./test_xtensor_zarr
     - python ../../test/zarrita_read.py
+    - python ../../test/zarr_read.py
