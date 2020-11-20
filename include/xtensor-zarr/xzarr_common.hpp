@@ -12,6 +12,34 @@
 
 namespace xt
 {
+    inline std::size_t get_zarr_major(const std::string& zarr_version)
+    {
+        std::size_t i = zarr_version.find('.');
+        std::size_t zarr_major;
+        if (i == std::string::npos)
+        {
+            zarr_major = std::stoi(zarr_version);
+        }
+        else
+        {
+            zarr_major = std::stoi(zarr_version.substr(0, i));
+        }
+        if ((zarr_major < 2) || (zarr_major > 3))
+        {
+            XTENSOR_THROW(std::runtime_error, "Unsupported Zarr version: " + zarr_version);
+        }
+        return zarr_major;
+    }
+
+    inline std::string ensure_startswith_slash(const std::string& s)
+    {
+        if (s.front() == '/')
+        {
+            return s;
+        }
+        return '/' + s;
+    }
+
     /********************************
      * xzarr_index_path declaration *
      ********************************/

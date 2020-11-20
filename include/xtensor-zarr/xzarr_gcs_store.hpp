@@ -17,6 +17,7 @@
 #include <string>
 
 #include "xtensor-io/xio_gcs_handler.hpp"
+#include "xzarr_common.hpp"
 
 namespace xt
 {
@@ -109,10 +110,6 @@ namespace xt
         {
             XTENSOR_THROW(std::runtime_error, "Root directory cannot be empty");
         }
-        while (m_root.back() == '/')
-        {
-            m_root.pop_back();
-        }
         std::size_t i = m_root.find('/');
         if (i == std::string::npos)
         {
@@ -124,31 +121,40 @@ namespace xt
             m_bucket = m_root.substr(0, i);
             m_root = m_root.substr(i + 1);
         }
+        while (m_root.back() == '/')
+        {
+            m_root.pop_back();
+        }
     }
 
     xzarr_gcs_stream xzarr_gcs_store::operator[](const std::string& key)
     {
-        return xzarr_gcs_stream(m_root + '/' + key, m_bucket, m_client);
+        std::string key2 = ensure_startswith_slash(key);
+        return xzarr_gcs_stream(m_root + key2, m_bucket, m_client);
     }
 
     void xzarr_gcs_store::set(const std::string& key, const std::vector<char>& value)
     {
-        xzarr_gcs_stream(m_root + '/' + key, m_bucket, m_client) = value;
+        std::string key2 = ensure_startswith_slash(key);
+        xzarr_gcs_stream(m_root + key2, m_bucket, m_client) = value;
     }
 
     void xzarr_gcs_store::set(const std::string& key, const std::string& value)
     {
-        xzarr_gcs_stream(m_root + '/' + key, m_bucket, m_client) = value;
+        std::string key2 = ensure_startswith_slash(key);
+        xzarr_gcs_stream(m_root + key2, m_bucket, m_client) = value;
     }
 
     std::string xzarr_gcs_store::get(const std::string& key)
     {
-        return std::move(xzarr_gcs_stream(m_root + '/' + key, m_bucket, m_client));
+        std::string key2 = ensure_startswith_slash(key);
+        return std::move(xzarr_gcs_stream(m_root + key2, m_bucket, m_client));
     }
 
     void xzarr_gcs_store::list_dir(const std::string& prefix, std::vector<std::string>& keys, std::vector<std::string>& prefixes)
     {
-        for (auto&& object_metadata: m_client.ListObjects(m_bucket, gcs::Prefix(m_root + '/' + prefix)))
+        std::string prefix2 = ensure_startswith_slash(prefix);
+        for (auto&& object_metadata: m_client.ListObjects(m_bucket, gcs::Prefix(m_root + prefix2)))
         {
             if (!object_metadata)
             {
@@ -186,8 +192,9 @@ namespace xt
 
     std::vector<std::string> xzarr_gcs_store::list_prefix(const std::string& prefix)
     {
+        std::string prefix2 = ensure_startswith_slash(prefix);
         std::vector<std::string> keys;
-        for (auto&& object_metadata: m_client.ListObjects(m_bucket, gcs::Prefix(m_root + '/' + prefix)))
+        for (auto&& object_metadata: m_client.ListObjects(m_bucket, gcs::Prefix(m_root + prefix2)))
         {
             if (!object_metadata)
             {
