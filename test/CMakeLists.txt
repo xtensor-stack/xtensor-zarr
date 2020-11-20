@@ -78,6 +78,7 @@ include_directories(${GTEST_INCLUDE_DIRS} SYSTEM)
 set(XTENSOR_ZARR_TESTS
     main.cpp
     test_zarr.cpp
+    test_aws.cpp
 )
 
 add_executable(test_xtensor_zarr ${XTENSOR_ZARR_TESTS} ${XTENSOR_ZARR_HEADERS})
@@ -96,8 +97,6 @@ endif()
 target_link_libraries(test_xtensor_zarr
     PUBLIC
     xtensor-zarr
-    #z
-    #storage_client absl_time google_cloud_cpp_common crc32c curl crypto absl_str_format_internal absl_strings absl_bad_optional_access
     ${CMAKE_DL_LIBS}
     ${GTEST_BOTH_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}

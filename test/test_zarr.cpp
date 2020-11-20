@@ -124,7 +124,7 @@ namespace xt
         EXPECT_EQ(fs::exists("store1/key1"), false);
     }
 
-    TEST(xzarr_hierarchy, store_delete_prefix)
+    TEST(xzarr_hierarchy, store_erase_prefix)
     {
         fs::remove_all("store1");
         xzarr_file_system_store store1("store1");
@@ -135,7 +135,7 @@ namespace xt
         EXPECT_EQ(fs::exists("store1/path_to/key1"), true);
         EXPECT_EQ(fs::exists("store1/path_to/key2"), true);
         EXPECT_EQ(fs::exists("store1/path_to/key3"), true);
-        store1.delete_prefix("path_to");
+        store1.erase_prefix("path_to");
         // check that the directory hase been erased
         EXPECT_EQ(fs::exists("store1/path_to"), false);
     }
@@ -163,7 +163,7 @@ namespace xt
         for (int i = 0; i < 2; i++)
         {
             EXPECT_EQ(keys2[i], ref2[i]);
-            // we don't have rights to delete objects in this bucket as an anonymous client
+            // we don't have rights to erase objects in this bucket as an anonymous client
             EXPECT_THROW(s2.erase(keys2[i]), std::runtime_error);
         }
     }

@@ -60,7 +60,7 @@ namespace xt
         std::vector<std::string> list();
         std::vector<std::string> list_prefix(const std::string& prefix);
         void erase(const std::string& key);
-        void delete_prefix(const std::string& prefix);
+        void erase_prefix(const std::string& prefix);
         void set(const std::string& key, const std::vector<char>& value);
         void set(const std::string& key, const std::string& value);
         std::string get(const std::string& key);
@@ -255,10 +255,10 @@ namespace xt
     }
 
     /**
-     * Delete all the keys with the given prefix from the store.
+     * Erase all the keys with the given prefix from the store.
      * @param prefix the prefix
      */
-    void xzarr_file_system_store::delete_prefix(const std::string& prefix)
+    void xzarr_file_system_store::erase_prefix(const std::string& prefix)
     {
         fs::remove_all(m_root + '/' + prefix);
     }

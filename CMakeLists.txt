@@ -52,6 +52,7 @@ set(XTENSOR_ZARR_HEADERS
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_array.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_file_system_store.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_gcs_store.hpp
+    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_aws_store.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_common.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_compressor.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_chunked_array.hpp
@@ -103,6 +104,29 @@ if(${storage_client_FOUND})
 else()
     message(WARNING "Google Cloud Storage not found - install google-cloud-cpp for GCS IO handler support")
 endif()
+
+if (NOT DEFINED BUILD_SHARED_LIBS)
+  set (BUILD_SHARED_LIBS ON)
+  find_package(AWSSDK COMPONENTS s3)
+  unset (BUILD_SHARED_LIBS)
+else ()
+  find_package(AWSSDK COMPONENTS s3)
+endif ()
+message(STATUS "Trying to find AWS SDK for AWS S3 IO handler support")
+if(${AWSSDK_FOUND})
+  message(STATUS "AWSSDK ${AWSSDK_VERSION} found, AWS S3 IO handler support enabled")
+  target_include_directories(xtensor-zarr
+      INTERFACE
+      ${AWSSDK_INCLUDE_DIRS}
+  )
+  target_link_libraries(xtensor-zarr
+      INTERFACE
+      ${AWSSDK_LINK_LIBRARIES}
+  )
+else()
+  message(WARNING "AWSSDK not found - install aws-sdk-cpp for AWS S3 IO handler support")
+endif()
+message(STATUS "AWSSDK_LINK_LIBRARIES ${AWSSDK_LINK_LIBRARIES}")
 
 if(DOWNLOAD_GTEST OR GTEST_SRC_DIR)
     set(BUILD_TESTS ON)
