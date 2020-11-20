@@ -20,6 +20,7 @@
 #include <aws/s3/model/DeleteObjectRequest.h>
 #include <aws/s3/model/ListObjectsRequest.h>
 #include <aws/s3/model/Object.h>
+#include "xzarr_common.hpp"
 
 namespace xt
 {
@@ -140,10 +141,6 @@ namespace xt
         {
             XTENSOR_THROW(std::runtime_error, "Root directory cannot be empty");
         }
-        while (m_root.back() == '/')
-        {
-            m_root.pop_back();
-        }
         std::size_t i = m_root.find('/');
         if (i == std::string::npos)
         {
@@ -155,36 +152,45 @@ namespace xt
             m_bucket = m_root.substr(0, i).c_str();
             m_root = m_root.substr(i + 1);
         }
+        while (m_root.back() == '/')
+        {
+            m_root.pop_back();
+        }
     }
 
     xzarr_aws_stream xzarr_aws_store::operator[](const std::string& key) const
     {
-        return xzarr_aws_stream((m_root + '/' + key).c_str(), m_bucket, m_client);
+        std::string key2 = ensure_startswith_slash(key);
+        return xzarr_aws_stream((m_root + key2).c_str(), m_bucket, m_client);
     }
 
     void xzarr_aws_store::set(const std::string& key, const std::vector<char>& value)
     {
-        xzarr_aws_stream((m_root + '/' + key).c_str(), m_bucket, m_client) = value;
+        std::string key2 = ensure_startswith_slash(key);
+        xzarr_aws_stream((m_root + key2).c_str(), m_bucket, m_client) = value;
     }
 
     void xzarr_aws_store::set(const std::string& key, const std::string& value)
     {
-        xzarr_aws_stream((m_root + '/' + key).c_str(), m_bucket, m_client) = value;
+        std::string key2 = ensure_startswith_slash(key);
+        xzarr_aws_stream((m_root + key2).c_str(), m_bucket, m_client) = value;
     }
 
     std::string xzarr_aws_store::get(const std::string& key) const
     {
-        return xzarr_aws_stream((m_root + '/' + key).c_str(), m_bucket, m_client);
+        std::string key2 = ensure_startswith_slash(key);
+        return xzarr_aws_stream((m_root + key2).c_str(), m_bucket, m_client);
     }
 
     void xzarr_aws_store::list_dir(const std::string& prefix, std::vector<std::string>& keys, std::vector<std::string>& prefixes) const
     {
-        Aws::S3::Model::ListObjectsRequest request;
         std::string full_prefix = prefix;
         if (!m_root.empty())
         {
-            full_prefix = m_root + '/' + prefix;
+            std::string prefix2 = ensure_startswith_slash(prefix);
+            full_prefix = m_root + prefix2;
         }
+        Aws::S3::Model::ListObjectsRequest request;
         request.WithBucket(m_bucket).WithPrefix(full_prefix.c_str());
         auto outcome = m_client.ListObjects(request);
         if (!outcome.IsSuccess())
@@ -230,7 +236,8 @@ namespace xt
         std::string full_prefix = prefix;
         if (!m_root.empty())
         {
-            full_prefix = m_root + '/' + prefix;
+            std::string prefix2 = ensure_startswith_slash(prefix);
+            full_prefix = m_root + prefix2;
         }
         Aws::S3::Model::ListObjectsRequest request;
         request.WithBucket(m_bucket).WithPrefix(full_prefix.c_str());
