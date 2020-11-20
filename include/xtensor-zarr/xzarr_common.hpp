@@ -10,6 +10,8 @@
 #ifndef XTENSOR_ZARR_COMMON_HPP
 #define XTENSOR_ZARR_COMMON_HPP
 
+#include "nlohmann/json.hpp"
+
 namespace xt
 {
     inline std::size_t get_zarr_major(const std::string& zarr_version)
@@ -77,13 +79,13 @@ namespace xt
      * xindex_path implementation *
      ******************************/
 
-    xzarr_index_path::xzarr_index_path()
+    inline xzarr_index_path::xzarr_index_path()
         : m_separator('/')
         , m_zarr_version(3)
     {
     }
 
-    void xzarr_index_path::set_directory(const std::string& directory)
+    inline void xzarr_index_path::set_directory(const std::string& directory)
     {
         m_directory = directory;
         if (m_directory.back() != '/')
@@ -92,18 +94,18 @@ namespace xt
         }
     }
 
-    void xzarr_index_path::set_separator(const char separator)
+    inline void xzarr_index_path::set_separator(const char separator)
     {
         m_separator = separator;
     }
 
-    void xzarr_index_path::set_zarr_version(std::size_t zarr_version)
+    inline void xzarr_index_path::set_zarr_version(std::size_t zarr_version)
     {
         m_zarr_version = zarr_version;
     }
 
     template <class I>
-    void xzarr_index_path::index_to_path(I first, I last, std::string& path)
+    inline void xzarr_index_path::index_to_path(I first, I last, std::string& path)
     {
         std::string fname;
         for (auto it = first; it != last; ++it)
@@ -124,12 +126,16 @@ namespace xt
         path = m_directory + fname;
     }
 
-    nlohmann::json xzarr_attrs::attrs()
+    /******************************
+     * xzarr_attrs implementation *
+     ******************************/
+
+    inline nlohmann::json xzarr_attrs::attrs()
     {
         return m_attrs;
     }
 
-    void xzarr_attrs::set_attrs(const nlohmann::json& attrs)
+    inline void xzarr_attrs::set_attrs(const nlohmann::json& attrs)
     {
         m_attrs = attrs;
     }
