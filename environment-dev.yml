@@ -12,6 +12,7 @@ dependencies:
   - zlib
   - xtensor-io
   - zarray
+  # Test dependencies
   - fsspec
   - numpy
   - numcodecs
