@@ -1,0 +1,19 @@
+name: xtensor-zarr
+channels:
+  - conda-forge
+dependencies:
+  # Build dependencies
+  - cmake
+  # Host dependencies
+  - nlohmann_json
+  - google-cloud-cpp
+  - aws-sdk-cpp
+  - cpp-filesystem
+  - zlib
+  - xtensor-io
+  - zarray
+  - fsspec
+  - numpy
+  - numcodecs
+  - zarr
+
