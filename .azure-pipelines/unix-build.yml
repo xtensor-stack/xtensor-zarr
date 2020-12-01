@@ -35,7 +35,6 @@ steps:
       source activate xtensor-zarr
       mkdir dev_tmp
       cd dev_tmp
-      #wget https://github.com/alimanfoo/zarrita/archive/master.tar.gz -O zarrita.tar.gz -q
       curl -LJO https://github.com/alimanfoo/zarrita/archive/master.tar.gz
       mkdir zarrita
       tar zxf zarrita-master.tar.gz -C zarrita --strip-components 1
