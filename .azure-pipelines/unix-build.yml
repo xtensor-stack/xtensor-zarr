@@ -32,28 +32,24 @@ steps:
     workingDirectory: $(Build.BinariesDirectory)/build
 
   - script: |
-      source activate xtenso-zarr
-      ./test_xtensor_zarr
-    displayName: Test xtensor-zarr
-    workingDirectory: $(Build.BinariesDirectory)/build/test
-  
-  - script: |
       source activate xtensor-zarr
       mkdir dev_tmp
       cd dev_tmp
-      wget https://github.com/alimanfoo/zarrita/archive/master.tar.gz -O zarrita.tar.gz -q
+      #wget https://github.com/alimanfoo/zarrita/archive/master.tar.gz -O zarrita.tar.gz -q
+      curl -LJO https://github.com/alimanfoo/zarrita/archive/master.tar.gz
       mkdir zarrita
-      tar zxf zarrita.tar.gz -C zarrita --strip-components 1
+      tar zxf zarrita-master.tar.gz -C zarrita --strip-components 1
       mv zarrita/zarrita.py ../test
     displayName: Install zarrita
     workingDirectory: $(Build.SourcesDirectory)
 
   - script: |
-      source activate xtenso-zarr
-      python zarrita_write.py
-      python zarr_write.py
-      python zarrita_read.py
-      python zarr_read.py
+      source activate xtensor-zarr
+      python $(Build.SourcesDirectory)/test/zarrita_write.py
+      python $(Build.SourcesDirectory)/test/zarr_write.py
+      ./test_xtensor_zarr
+      python $(Build.SourcesDirectory)/test/zarrita_read.py
+      python $(Build.SourcesDirectory)/test/zarr_read.py
     displayName: Test xtensor-zarr
-    workingDirectory: $(Build.SourcesDirectory)/test
-
+    workingDirectory: $(Build.BinariesDirectory)/build/test
+  
