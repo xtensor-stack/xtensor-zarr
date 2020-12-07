@@ -14,7 +14,7 @@ dependencies:
   - nlohmann_json
   - cpp-filesystem
   - cpp-half
-  - google-cloud-cpp
+  - google-cloud-cpp=1.20.0
   - zlib
   - blosc
   - allthekernels
