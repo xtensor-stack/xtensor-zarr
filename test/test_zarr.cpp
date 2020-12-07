@@ -26,8 +26,7 @@ namespace xt
     TEST(xzarr_hierarchy, read_v2)
     {
         xzarr_register_compressor<xzarr_file_system_store, xio_gzip_config>();
-        xzarr_file_system_store s("h_zarr.zr2");
-        auto h = get_zarr_hierarchy(s);
+        auto h = get_zarr_hierarchy("h_zarr.zr2");
         zarray z = h.get_array("/arthur/dent");
         auto ref = arange(2 * 5).reshape({2, 5});
         auto a = z.get_array<double>();
@@ -37,8 +36,7 @@ namespace xt
 
     TEST(xzarr_hierarchy, read_array)
     {
-        xzarr_file_system_store s("h_zarrita.zr3");
-        auto h = get_zarr_hierarchy(s);
+        auto h = get_zarr_hierarchy("h_zarrita.zr3");
         zarray z = h.get_array("/arthur/dent");
         auto ref = arange(2 * 5).reshape({2, 5});
         auto a = z.get_array<double>();
@@ -53,8 +51,7 @@ namespace xt
         nlohmann::json attrs = {{"question", "life"}, {"answer", 42}};
         std::size_t pool_size = 1;
         double fill_value = 6.6;
-        xzarr_file_system_store s("h_xtensor.zr3");
-        auto h = create_zarr_hierarchy(s);
+        auto h = create_zarr_hierarchy("h_xtensor.zr3");
         zarray z1 = h.create_array("/arthur/dent", shape, chunk_shape, "<f8", 'C', '/', xio_gzip_config(), attrs, pool_size, fill_value);
         //xchunked_array_factory<xzarr_file_system_store>::add_dtype<half_float::half>("f2");
         //auto a1 = z1.get_array<double>();
@@ -80,8 +77,7 @@ namespace xt
 
     TEST(xzarr_hierarchy, create_group)
     {
-        xzarr_file_system_store store1("h_xtensor.zr3");
-        auto h1 = get_zarr_hierarchy(store1);
+        auto h1 = get_zarr_hierarchy("h_xtensor.zr3");
         nlohmann::json attrs = {{"heart", "gold"}, {"improbability", "infinite"}};
         auto g1 = h1.create_group("/tricia/mcmillan", attrs);
         // since "/tricia/mcmillan" is a group, it should not be possible to get it as an array
@@ -90,8 +86,7 @@ namespace xt
 
     TEST(xzarr_hierarchy, create_node)
     {
-        xzarr_file_system_store store1("h_xtensor.zr3");
-        auto h1 = get_zarr_hierarchy(store1);
+        auto h1 = get_zarr_hierarchy("h_xtensor.zr3");
         h1.create_group("/marvin");
         h1["/marvin"].create_group("paranoid");
         std::vector<size_t> shape = {5, 5};
@@ -103,8 +98,7 @@ namespace xt
 
     TEST(xzarr_hierarchy, explore)
     {
-        xzarr_file_system_store store1("h_xtensor.zr3");
-        auto h1 = get_zarr_hierarchy(store1);
+        auto h1 = get_zarr_hierarchy("h_xtensor.zr3");
         std::string children = h1.get_children("/").dump();
         std::string ref1 = "{\"arthur\":\"implicit_group\",\"marvin\":\"explicit_group\",\"tricia\":\"implicit_group\"}";
         EXPECT_EQ(children, ref1);
@@ -187,8 +181,7 @@ namespace xt
         std::size_t pool_size = 1;
         double fill_value = 6.6;
         std::string zarr_version = "2";
-        xzarr_file_system_store s("h_xtensor.zr2");
-        auto h = create_zarr_hierarchy(s, zarr_version);
+        auto h = create_zarr_hierarchy("h_xtensor.zr2", zarr_version);
         zarray z1 = h.create_array("/arthur/dent", shape, chunk_shape, "<f8", 'C', '.', xio_gzip_config(), attrs, pool_size, fill_value);
     }
 }

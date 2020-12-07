@@ -16,6 +16,7 @@
 #include "xzarr_array.hpp"
 #include "xzarr_group.hpp"
 #include "xzarr_common.hpp"
+#include "xzarr_file_system_store.hpp"
 
 namespace xt
 {
@@ -50,7 +51,7 @@ namespace xt
         nlohmann::json get_nodes(const std::string& path="/");
 
     private:
-        store_type& m_store;
+        store_type m_store;
         std::string m_zarr_version;
     };
 
@@ -140,6 +141,17 @@ namespace xt
         return h;
     }
 
+    xzarr_hierarchy<xzarr_file_system_store> create_zarr_hierarchy(const char* local_store_path, const std::string& zarr_version = "3")
+    {
+        xzarr_file_system_store store(local_store_path);
+        return create_zarr_hierarchy(store, zarr_version);
+    }
+
+    xzarr_hierarchy<xzarr_file_system_store> create_zarr_hierarchy(const std::string& local_store_path, const std::string& zarr_version = "3")
+    {
+        return create_zarr_hierarchy(local_store_path.c_str(), zarr_version);
+    }
+
     /**
      * Accesses a Zarr hierarchy.
      * This function returns a ``xzarr_hierarchy`` handler to a hierarchy in a given store.
@@ -176,6 +188,18 @@ namespace xt
         xzarr_hierarchy<store_type> h(store, zarr_ver);
         return h;
     }
+
+    xzarr_hierarchy<xzarr_file_system_store> get_zarr_hierarchy(const char* local_store_path, const std::string& zarr_version = "0")
+    {
+        xzarr_file_system_store store(local_store_path);
+        return get_zarr_hierarchy(store, zarr_version);
+    }
+
+    xzarr_hierarchy<xzarr_file_system_store> get_zarr_hierarchy(const std::string& local_store_path, const std::string& zarr_version = "0")
+    {
+        return get_zarr_hierarchy(local_store_path.c_str(), zarr_version);
+    }
+
 }
 
 #endif
