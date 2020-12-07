@@ -6,7 +6,7 @@ dependencies:
   - cmake
   # Host dependencies
   - nlohmann_json
-  - google-cloud-cpp
+  - google-cloud-cpp=1.20.0
   - aws-sdk-cpp
   - cpp-filesystem
   - zlib
