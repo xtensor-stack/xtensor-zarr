@@ -156,7 +156,7 @@ namespace xt
                               "data/root/arthur/dent/c1/1",
                               "data/root/arthur/dent/c2/0",
                               "data/root/arthur/dent/c2/1"};
-        for (int i = 0; i < 6; i++)
+        for (unsigned long int i = 0; i < 6; i++)
         {
             EXPECT_EQ(keys1[i], ref1[i]);
         }
@@ -165,7 +165,7 @@ namespace xt
         auto keys2 = s2.list();
         std::string ref2[] = {"android.array.json",
                               "paranoid.group.json"};
-        for (int i = 0; i < 2; i++)
+        for (unsigned long int i = 0; i < 2; i++)
         {
             EXPECT_EQ(keys2[i], ref2[i]);
             // we don't have rights to erase objects in this bucket as an anonymous client
@@ -191,5 +191,16 @@ namespace xt
         std::vector<size_t> chunk_shape = {2, 2};
         auto h = create_zarr_hierarchy("test.zr3");
         auto z = h.create_array("/foo", shape, chunk_shape, "<f8");
+    }
+
+    TEST(xzarr_hierarchy, zarr_assign)
+    {
+        std::vector<size_t> shape = {4, 4};
+        std::vector<size_t> chunk_shape = {2, 2};
+        auto h1 = create_zarr_hierarchy("src.zr3");
+        zarray z1 = h1.create_array("/", shape, chunk_shape, "<f8");
+        auto h2 = create_zarr_hierarchy("dst.zr3");
+        zarray z2 = h2.create_array("/", shape, chunk_shape, "<f8");
+        z2 = z1;
     }
 }

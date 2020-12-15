@@ -95,7 +95,7 @@ namespace xt
     void xzarr_gcs_stream::assign(const char* value, std::size_t size)
     {
         auto writer = m_client.WriteObject(m_bucket, m_path);
-        writer.write(value, size);
+        writer.write(value, (std::streamsize)size);
         writer.flush();
     }
 
