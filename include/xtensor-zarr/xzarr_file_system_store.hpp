@@ -129,7 +129,7 @@ namespace xt
             }
         }
         std::ofstream stream(m_path, std::ofstream::binary);
-        stream.write(value, size);
+        stream.write(value, (std::streamsize)size);
         stream.flush();
     }
 

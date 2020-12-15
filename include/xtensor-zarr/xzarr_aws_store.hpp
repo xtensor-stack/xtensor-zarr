@@ -115,7 +115,7 @@ namespace xt
         request.SetKey(m_path);
 
         std::shared_ptr<Aws::IOStream> writer = Aws::MakeShared<Aws::FStream>("SampleAllocationTag", m_path.c_str(), std::ios_base::in | std::ios_base::binary);
-        writer->write(value, size);
+        writer->write(value, (std::streamsize)size);
         writer->flush();
 
         request.SetBody(writer);

@@ -20,11 +20,11 @@ namespace xt
         std::size_t zarr_major;
         if (i == std::string::npos)
         {
-            zarr_major = std::stoi(zarr_version);
+            zarr_major = (std::size_t)std::stoi(zarr_version);
         }
         else
         {
-            zarr_major = std::stoi(zarr_version.substr(0, i));
+            zarr_major = (std::size_t)std::stoi(zarr_version.substr(0, i));
         }
         if ((zarr_major < 2) || (zarr_major > 3))
         {
