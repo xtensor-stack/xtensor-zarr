@@ -190,6 +190,6 @@ namespace xt
         std::vector<size_t> shape = {4, 4};
         std::vector<size_t> chunk_shape = {2, 2};
         auto h = create_zarr_hierarchy("test.zr3");
-        auto z = h.create_array("/foo", shape, chunk_shape);
+        auto z = h.create_array("/foo", shape, chunk_shape, "<f8");
     }
 }
