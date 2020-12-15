@@ -41,6 +41,9 @@ namespace xt
         template <class shape_type, class C>
         zarray create_array(const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout='C', char chunk_separator='/', const C& compressor=xio_binary_config(), const nlohmann::json& attrs=nlohmann::json::object(), std::size_t chunk_pool_size=1, const nlohmann::json& fill_value=nlohmann::json());
 
+        template <class shape_type>
+        zarray create_array(const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout='C', char chunk_separator='/', const xio_binary_config& compressor=xio_binary_config(), const nlohmann::json& attrs=nlohmann::json::object(), std::size_t chunk_pool_size=1, const nlohmann::json& fill_value=nlohmann::json());
+
         zarray get_array(const std::string& path, std::size_t chunk_pool_size=1);
 
         xzarr_group<store_type> create_group(const std::string& path, const nlohmann::json& attrs=nlohmann::json::object(), const nlohmann::json& extensions=nlohmann::json::array());
@@ -84,6 +87,13 @@ namespace xt
     template <class store_type>
     template <class shape_type, class C>
     zarray xzarr_hierarchy<store_type>::create_array(const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout, char chunk_separator, const C& compressor, const nlohmann::json& attrs, std::size_t chunk_pool_size, const nlohmann::json& fill_value)
+    {
+        return create_zarr_array(m_store, path, shape, chunk_shape, dtype, chunk_memory_layout, chunk_separator, compressor, attrs, chunk_pool_size, fill_value, m_zarr_version);
+    }
+
+    template <class store_type>
+    template <class shape_type>
+    zarray xzarr_hierarchy<store_type>::create_array(const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout, char chunk_separator, const xio_binary_config& compressor, const nlohmann::json& attrs, std::size_t chunk_pool_size, const nlohmann::json& fill_value)
     {
         return create_zarr_array(m_store, path, shape, chunk_shape, dtype, chunk_memory_layout, chunk_separator, compressor, attrs, chunk_pool_size, fill_value, m_zarr_version);
     }
