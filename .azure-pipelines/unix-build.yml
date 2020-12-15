@@ -44,11 +44,6 @@ steps:
 
   - script: |
       source activate xtensor-zarr
-      python $(Build.SourcesDirectory)/test/zarrita_write.py
-      python $(Build.SourcesDirectory)/test/zarr_write.py
-      ./test_xtensor_zarr
-      python $(Build.SourcesDirectory)/test/zarrita_read.py
-      python $(Build.SourcesDirectory)/test/zarr_read.py
+      python $(Build.SourcesDirectory)/test/zarrita_write.py && python $(Build.SourcesDirectory)/test/zarr_write.py && ./test_xtensor_zarr && python $(Build.SourcesDirectory)/test/zarrita_read.py && python $(Build.SourcesDirectory)/test/zarr_read.py
     displayName: Test xtensor-zarr
     workingDirectory: $(Build.BinariesDirectory)/build/test
-  
