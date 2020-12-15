@@ -184,4 +184,12 @@ namespace xt
         auto h = create_zarr_hierarchy("h_xtensor.zr2", zarr_version);
         zarray z1 = h.create_array("/arthur/dent", shape, chunk_shape, "<f8", 'C', '.', xio_gzip_config(), attrs, pool_size, fill_value);
     }
+
+    TEST(xzarr_hierarchy, array_default_params)
+    {
+        std::vector<size_t> shape = {4, 4};
+        std::vector<size_t> chunk_shape = {2, 2};
+        auto h = create_zarr_hierarchy("test.zr3");
+        auto z = h.create_array("/foo", shape, chunk_shape);
+    }
 }
