@@ -38,11 +38,8 @@ namespace xt
 
         void create_hierarchy();
 
-        template <class shape_type, class C>
-        zarray create_array(const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout='C', char chunk_separator='/', const C& compressor=xio_binary_config(), const nlohmann::json& attrs=nlohmann::json::object(), std::size_t chunk_pool_size=1, const nlohmann::json& fill_value=nlohmann::json());
-
-        template <class shape_type>
-        zarray create_array(const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout='C', char chunk_separator='/', const xio_binary_config& compressor=xio_binary_config(), const nlohmann::json& attrs=nlohmann::json::object(), std::size_t chunk_pool_size=1, const nlohmann::json& fill_value=nlohmann::json());
+        template <class shape_type, class O = xzarr_create_array_options<xio_binary_config>>
+        zarray create_array(const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, O o=O());
 
         zarray get_array(const std::string& path, std::size_t chunk_pool_size=1);
 
@@ -85,18 +82,12 @@ namespace xt
     }
 
     template <class store_type>
-    template <class shape_type, class C>
-    zarray xzarr_hierarchy<store_type>::create_array(const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout, char chunk_separator, const C& compressor, const nlohmann::json& attrs, std::size_t chunk_pool_size, const nlohmann::json& fill_value)
+    template <class shape_type, class O>
+    zarray xzarr_hierarchy<store_type>::create_array(const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, O o)
     {
-        return create_zarr_array(m_store, path, shape, chunk_shape, dtype, chunk_memory_layout, chunk_separator, compressor, attrs, chunk_pool_size, fill_value, m_zarr_version);
+        return create_zarr_array(m_store, path, shape, chunk_shape, dtype, o.chunk_memory_layout, o.chunk_separator, o.compressor, o.attrs, o.chunk_pool_size, o.fill_value, m_zarr_version);
     }
 
-    template <class store_type>
-    template <class shape_type>
-    zarray xzarr_hierarchy<store_type>::create_array(const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout, char chunk_separator, const xio_binary_config& compressor, const nlohmann::json& attrs, std::size_t chunk_pool_size, const nlohmann::json& fill_value)
-    {
-        return create_zarr_array(m_store, path, shape, chunk_shape, dtype, chunk_memory_layout, chunk_separator, compressor, attrs, chunk_pool_size, fill_value, m_zarr_version);
-    }
 
     template <class store_type>
     zarray xzarr_hierarchy<store_type>::get_array(const std::string& path, std::size_t chunk_pool_size)

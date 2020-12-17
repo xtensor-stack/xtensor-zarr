@@ -13,6 +13,7 @@
 #include "nlohmann/json.hpp"
 #include "xzarr_array.hpp"
 #include "xzarr_group.hpp"
+#include "xzarr_common.hpp"
 
 namespace xt
 {
@@ -38,8 +39,8 @@ namespace xt
 
         xzarr_group<store_type> create_group(const std::string& name, const nlohmann::json& attrs=nlohmann::json::object(), const nlohmann::json& extensions=nlohmann::json::array());
 
-        template <class shape_type, class C>
-        zarray create_array(const std::string& name, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout='C', char chunk_separator='/', const C& compressor=xio_binary_config(), const nlohmann::json& attrs=nlohmann::json::object(), std::size_t chunk_pool_size=1, const nlohmann::json& fill_value=nlohmann::json());
+        template <class shape_type, class O = xzarr_create_array_options<xio_binary_config>>
+        zarray create_array(const std::string& name, shape_type shape, shape_type chunk_shape, const std::string& dtype, O o=O());
 
         zarray get_array(std::size_t chunk_pool_size=1);
         xzarr_group<store_type> get_group();
@@ -115,11 +116,11 @@ namespace xt
     }
 
     template <class store_type>
-    template <class shape_type, class C>
-    zarray xzarr_node<store_type>::create_array(const std::string& name, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout, char chunk_separator, const C& compressor, const nlohmann::json& attrs, std::size_t chunk_pool_size, const nlohmann::json& fill_value)
+    template <class shape_type, class O>
+    zarray xzarr_node<store_type>::create_array(const std::string& name, shape_type shape, shape_type chunk_shape, const std::string& dtype, O o)
     {
         m_node_type = xzarr_node_type::array;
-        return create_zarr_array(m_store, m_path + '/' + name, shape, chunk_shape, dtype, chunk_memory_layout, chunk_separator, compressor, attrs, chunk_pool_size, fill_value);
+        return create_zarr_array(m_store, m_path + '/' + name, shape, chunk_shape, dtype, o.chunk_memory_layout, o.chunk_separator, o.compressor, o.attrs, o.chunk_pool_size, o.fill_value);
     }
 
     template <class store_type>
