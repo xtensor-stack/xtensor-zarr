@@ -14,6 +14,27 @@
 
 namespace xt
 {
+    template <class C = xio_binary_config>
+    struct xzarr_create_array_options
+    {
+        char chunk_memory_layout;
+        char chunk_separator;
+        C compressor;
+        nlohmann::json attrs;
+        std::size_t chunk_pool_size;
+        nlohmann::json fill_value;
+
+        xzarr_create_array_options()
+            : chunk_memory_layout('C')
+            , chunk_separator('/')
+            , compressor(C())
+            , attrs(nlohmann::json::object())
+            , chunk_pool_size(1)
+            , fill_value(nlohmann::json())
+        {
+        }
+    };
+
     inline std::size_t get_zarr_major(const std::string& zarr_version)
     {
         std::size_t i = zarr_version.find('.');

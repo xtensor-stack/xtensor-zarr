@@ -52,7 +52,13 @@ namespace xt
         std::size_t pool_size = 1;
         double fill_value = 6.6;
         auto h = create_zarr_hierarchy("h_xtensor.zr3");
-        zarray z1 = h.create_array("/arthur/dent", shape, chunk_shape, "<f8", 'C', '/', xio_gzip_config(), attrs, pool_size, fill_value);
+        xzarr_create_array_options<xio_gzip_config> o;
+        o.chunk_memory_layout = 'C';
+        o.chunk_separator = '/';
+        o.attrs = attrs;
+        o.chunk_pool_size = pool_size;
+        o.fill_value = fill_value;
+        zarray z1 = h.create_array("/arthur/dent", shape, chunk_shape, "<f8", o);
         //xchunked_array_factory<xzarr_file_system_store>::add_dtype<half_float::half>("f2");
         //auto a1 = z1.get_array<double>();
         //double v = 3.;
@@ -91,7 +97,10 @@ namespace xt
         h1["/marvin"].create_group("paranoid");
         std::vector<size_t> shape = {5, 5};
         std::vector<size_t> chunk_shape = {3, 3};
-        h1["/marvin"].create_array("android", shape, chunk_shape, "<f8", 'C', '/', xio_binary_config());
+        xzarr_create_array_options<> o;
+        o.chunk_memory_layout = 'C';
+        o.chunk_separator = '/';
+        h1["/marvin"].create_array("android", shape, chunk_shape, "<f8", o);
         // since "/marvin/android" is an array, it should not be possible to get it as a group
         EXPECT_THROW(h1["/marvin/android"].get_group(), std::runtime_error);
     }
@@ -182,7 +191,13 @@ namespace xt
         double fill_value = 6.6;
         std::string zarr_version = "2";
         auto h = create_zarr_hierarchy("h_xtensor.zr2", zarr_version);
-        zarray z1 = h.create_array("/arthur/dent", shape, chunk_shape, "<f8", 'C', '.', xio_gzip_config(), attrs, pool_size, fill_value);
+        xzarr_create_array_options<xio_gzip_config> o;
+        o.chunk_memory_layout = 'C';
+        o.chunk_separator = '.';
+        o.attrs = attrs;
+        o.chunk_pool_size = pool_size;
+        o.fill_value = fill_value;
+        zarray z1 = h.create_array("/arthur/dent", shape, chunk_shape, "<f8", o);
     }
 
     TEST(xzarr_hierarchy, array_default_params)
