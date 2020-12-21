@@ -36,6 +36,7 @@ namespace xt
     public:
         xzarr_hierarchy(store_type& store, const std::string& zarr_version = "3");
 
+        void check_hierarchy();
         void create_hierarchy();
 
         template <class shape_type, class O = xzarr_create_array_options<xio_binary_config>>
@@ -52,7 +53,7 @@ namespace xt
 
     private:
         store_type m_store;
-        std::string m_zarr_version;
+        std::size_t m_zarr_version_major;
     };
 
     /**********************************
@@ -62,14 +63,29 @@ namespace xt
     template <class store_type>
     xzarr_hierarchy<store_type>::xzarr_hierarchy(store_type& store, const std::string& zarr_version)
         : m_store(store)
-        , m_zarr_version(zarr_version)
+        , m_zarr_version_major(get_zarr_version_major(zarr_version))
     {
+    }
+
+    template <class store_type>
+    void xzarr_hierarchy<store_type>::check_hierarchy()
+    {
+        std::string s;
+        if (m_zarr_version_major == 3)
+        {
+            std::string s = m_store["zarr.json"];
+            auto j = nlohmann::json::parse(s);
+            if (!j.contains("zarr_format"))
+            {
+                XTENSOR_THROW(std::runtime_error, "Not a Zarr hierarchy: " + m_store.get_root());
+            }
+        }
     }
 
     template <class store_type>
     void xzarr_hierarchy<store_type>::create_hierarchy()
     {
-        if (get_zarr_major(m_zarr_version) == 3)
+        if (m_zarr_version_major == 3)
         {
             nlohmann::json j;
             j["zarr_format"] = "https://purl.org/zarr/spec/protocol/core/3.0";
@@ -85,14 +101,14 @@ namespace xt
     template <class shape_type, class O>
     zarray xzarr_hierarchy<store_type>::create_array(const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, O o)
     {
-        return create_zarr_array(m_store, path, shape, chunk_shape, dtype, o.chunk_memory_layout, o.chunk_separator, o.compressor, o.attrs, o.chunk_pool_size, o.fill_value, m_zarr_version);
+        return create_zarr_array(m_store, path, shape, chunk_shape, dtype, o.chunk_memory_layout, o.chunk_separator, o.compressor, o.attrs, o.chunk_pool_size, o.fill_value, m_zarr_version_major);
     }
 
 
     template <class store_type>
     zarray xzarr_hierarchy<store_type>::get_array(const std::string& path, std::size_t chunk_pool_size)
     {
-        return get_zarr_array(m_store, path, chunk_pool_size, m_zarr_version);
+        return get_zarr_array(m_store, path, chunk_pool_size, m_zarr_version_major);
     }
 
     template <class store_type>
@@ -165,10 +181,10 @@ namespace xt
      * @return returns a ``xzarr_hierarchy`` handler.
      */
     template <class store_type>
-    xzarr_hierarchy<store_type> get_zarr_hierarchy(store_type& store, const std::string& zarr_version = "0")
+    xzarr_hierarchy<store_type> get_zarr_hierarchy(store_type& store, const std::string& zarr_version = "")
     {
         std::string zarr_ver;
-        if (zarr_version == "0")
+        if (zarr_version.empty())
         {
             std::vector<std::string> keys;
             std::vector<std::string> prefixes;
@@ -187,16 +203,17 @@ namespace xt
             zarr_ver = zarr_version;
         }
         xzarr_hierarchy<store_type> h(store, zarr_ver);
+        h.check_hierarchy();
         return h;
     }
 
-    xzarr_hierarchy<xzarr_file_system_store> get_zarr_hierarchy(const char* local_store_path, const std::string& zarr_version = "0")
+    xzarr_hierarchy<xzarr_file_system_store> get_zarr_hierarchy(const char* local_store_path, const std::string& zarr_version = "")
     {
         xzarr_file_system_store store(local_store_path);
         return get_zarr_hierarchy(store, zarr_version);
     }
 
-    xzarr_hierarchy<xzarr_file_system_store> get_zarr_hierarchy(const std::string& local_store_path, const std::string& zarr_version = "0")
+    xzarr_hierarchy<xzarr_file_system_store> get_zarr_hierarchy(const std::string& local_store_path, const std::string& zarr_version = "")
     {
         return get_zarr_hierarchy(local_store_path.c_str(), zarr_version);
     }

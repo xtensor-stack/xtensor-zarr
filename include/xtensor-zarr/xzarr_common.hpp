@@ -35,7 +35,7 @@ namespace xt
         }
     };
 
-    inline std::size_t get_zarr_major(const std::string& zarr_version)
+    inline std::size_t get_zarr_version_major(const std::string& zarr_version)
     {
         std::size_t i = zarr_version.find('.');
         std::size_t zarr_major;

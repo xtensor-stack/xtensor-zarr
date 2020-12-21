@@ -95,6 +95,10 @@ namespace xt
     xzarr_file_system_stream::operator std::string() const
     {
         std::ifstream stream(m_path);
+        if (!stream.is_open())
+        {
+            XTENSOR_THROW(std::runtime_error, "Could not read file: " + m_path);
+        }
         std::string bytes{std::istreambuf_iterator<char>{stream}, {}};
         return bytes;
     }
