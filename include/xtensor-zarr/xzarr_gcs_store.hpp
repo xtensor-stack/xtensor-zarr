@@ -76,6 +76,10 @@ namespace xt
     xzarr_gcs_stream::operator std::string() const
     {
         auto reader = m_client.ReadObject(m_bucket, m_path);
+        if (!reader)
+        {
+            XTENSOR_THROW(std::runtime_error, reader.status().message());
+        }
         std::string bytes{std::istreambuf_iterator<char>{reader}, {}};
         return bytes;
     }

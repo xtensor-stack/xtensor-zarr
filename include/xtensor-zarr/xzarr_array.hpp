@@ -19,12 +19,11 @@
 namespace xt
 {
     template <class store_type, class shape_type, class C>
-    zarray create_zarr_array(store_type store, const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout, char chunk_separator, const C& compressor, const nlohmann::json& attrs, std::size_t chunk_pool_size, const nlohmann::json& fill_value, const std::string& zarr_version = "3")
+    zarray create_zarr_array(store_type store, const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout, char chunk_separator, const C& compressor, const nlohmann::json& attrs, std::size_t chunk_pool_size, const nlohmann::json& fill_value, const std::size_t zarr_version_major = 3)
     {
-        std::size_t zarr_major = get_zarr_major(zarr_version);
         nlohmann::json j;
         nlohmann::json compressor_config;
-        switch (zarr_major)
+        switch (zarr_version_major)
         {
             case 3:
                 j["chunk_grid"]["type"] = "regular";
@@ -61,7 +60,7 @@ namespace xt
         j["shape"] = shape;
         j["fill_value"] = fill_value;
         std::string full_path;
-        switch (zarr_major)
+        switch (zarr_version_major)
         {
             case 3:
                 store["meta/root" + path + ".array.json"] = j.dump(4);
@@ -82,12 +81,11 @@ namespace xt
     }
 
     template <class store_type>
-    zarray get_zarr_array(store_type store, const std::string& path, std::size_t chunk_pool_size, const std::string& zarr_version = "3")
+    zarray get_zarr_array(store_type store, const std::string& path, std::size_t chunk_pool_size, const std::size_t zarr_version_major = 3)
     {
-        std::size_t zarr_major = get_zarr_major(zarr_version);
         std::string s;
         nlohmann::json attrs;
-        switch (zarr_major)
+        switch (zarr_version_major)
         {
             case 3:
                 s = store[std::string("meta/root") + path + ".array.json"];
@@ -108,7 +106,7 @@ namespace xt
         nlohmann::json compressor_config;
         std::string chunk_separator;
         std::string full_path;
-        switch (zarr_major)
+        switch (zarr_version_major)
         {
             case 3:
                 json_chunk_shape = j["chunk_grid"]["chunk_shape"];
@@ -151,7 +149,7 @@ namespace xt
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
         std::transform(json_chunk_shape.begin(), json_chunk_shape.end(), chunk_shape.begin(),
                        [](nlohmann::json& size) -> int { return stoi(size.dump()); });
-        return xchunked_array_factory<store_type>::build(store, compressor, dtype, chunk_memory_layout[0], shape, chunk_shape, full_path, chunk_separator[0], attrs, compressor_config, chunk_pool_size, j["fill_value"], zarr_major);
+        return xchunked_array_factory<store_type>::build(store, compressor, dtype, chunk_memory_layout[0], shape, chunk_shape, full_path, chunk_separator[0], attrs, compressor_config, chunk_pool_size, j["fill_value"], zarr_version_major);
     }
 }
 
