@@ -33,9 +33,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
-find_package(xtensor-io 0.10.1 REQUIRED)
-message(STATUS "Found xtensor: ${xtensor_INCLUDE_DIRS}/xtensor")
-
 #Remove the following lines when xtensor-io is fixed
 include(CMakeFindDependencyMacro)
 find_dependency(xtensor REQUIRED)
@@ -53,6 +50,7 @@ set(XTENSOR_ZARR_HEADERS
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_file_system_store.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_gcs_store.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_aws_store.hpp
+    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_gdal_store.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_common.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_compressor.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_chunked_array.hpp
@@ -64,13 +62,29 @@ OPTION(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
 OPTION(DOWNLOAD_GBENCHMARK "download google benchmark and build from source" ON)
 
 add_library(xtensor-zarr INTERFACE)
-target_link_libraries(xtensor-zarr INTERFACE xtensor-io)
 
 target_include_directories(xtensor-zarr
     INTERFACE
     $<BUILD_INTERFACE:${XTENSOR_ZARR_INCLUDE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
+
+message(STATUS "Trying to find GDAL for Virtual File System support")
+find_package(GDAL)
+if(${GDAL_FOUND})
+    message(STATUS "GDAL ${GDAL_VERSION} found, Virtual File System support enabled")
+    include_directories(${Blosc_INCLUDE_DIRS})
+    target_include_directories(xtensor-zarr
+        INTERFACE
+        $<BUILD_INTERFACE:${GDAL_INCLUDE_DIRS}>
+    )
+    target_link_libraries(xtensor-zarr
+        INTERFACE
+        ${GDAL_LIBRARIES}
+    )
+else()
+    message(WARNING "GDAL not found - install GDAL for Virtual File System support")
+endif()
 
 message(STATUS "Trying to find Blosc for Blosc file support")
 find_package(Blosc)

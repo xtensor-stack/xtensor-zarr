@@ -10,7 +10,7 @@ dependencies:
   - aws-sdk-cpp
   - cpp-filesystem
   - zlib
-  - xtensor-io
+  - gdal
   - zarray
   # Test dependencies
   - fsspec

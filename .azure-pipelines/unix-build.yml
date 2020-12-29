@@ -11,6 +11,17 @@ steps:
 
   - script: |
       source activate xtensor-zarr
+      mkdir dev_tmp
+      cd dev_tmp
+      curl -LJO https://github.com/davidbrochart/xtensor-io/archive/file_support.tar.gz
+      mkdir xtensor-io
+      tar zxf xtensor-io-file_support.tar.gz -C xtensor-io --strip-components 1
+      mv xtensor-io/include/xtensor-io $CONDA_PREFIX/include
+    displayName: Install xtensor-io master
+    workingDirectory: $(Build.SourcesDirectory)
+
+  - script: |
+      source activate xtensor-zarr
       conda install gxx_linux-64 libgcc -c conda-forge
     condition: eq('${{ parameters.platform }}', 'Linux')
     displayName: Install conda-forge compilers
