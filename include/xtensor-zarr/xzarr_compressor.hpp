@@ -67,8 +67,11 @@ namespace xt
             i2p.set_zarr_version(zarr_version);
             auto io_config = store.get_io_config();
             a.chunks().configure(config, io_config);
-            a.set_attrs(attrs);
-            return zarray(std::move(a));
+            z = zarray(std::move(a));
+            auto medatata = z.metadata();
+            metadata["zarr"] = attrs;
+            z.set_medata(metadata);
+            return z;
         }
         else
         {
@@ -87,8 +90,11 @@ namespace xt
             i2p.set_zarr_version(zarr_version);
             auto io_config = store.get_io_config();
             a.chunks().configure(config, io_config);
-            a.set_attrs(attrs);
-            return zarray(std::move(a));
+            z = zarray(std::move(a));
+            auto medatata = z.metadata();
+            metadata["zarr"] = attrs;
+            z.set_medata(metadata);
+            return z;
         }
     }
 
