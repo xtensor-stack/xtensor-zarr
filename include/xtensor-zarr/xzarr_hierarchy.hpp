@@ -151,20 +151,20 @@ namespace xt
      * @return returns a ``xzarr_hierarchy`` handler.
      */
     template <class store_type>
-    xzarr_hierarchy<store_type> create_zarr_hierarchy(store_type& store, const std::string& zarr_version = "3")
+    inline xzarr_hierarchy<store_type> create_zarr_hierarchy(store_type& store, const std::string& zarr_version = "3")
     {
         xzarr_hierarchy<store_type> h(store, zarr_version);
         h.create_hierarchy();
         return h;
     }
 
-    xzarr_hierarchy<xzarr_file_system_store> create_zarr_hierarchy(const char* local_store_path, const std::string& zarr_version = "3")
+    inline xzarr_hierarchy<xzarr_file_system_store> create_zarr_hierarchy(const char* local_store_path, const std::string& zarr_version = "3")
     {
         xzarr_file_system_store store(local_store_path);
         return create_zarr_hierarchy(store, zarr_version);
     }
 
-    xzarr_hierarchy<xzarr_file_system_store> create_zarr_hierarchy(const std::string& local_store_path, const std::string& zarr_version = "3")
+    inline xzarr_hierarchy<xzarr_file_system_store> create_zarr_hierarchy(const std::string& local_store_path, const std::string& zarr_version = "3")
     {
         return create_zarr_hierarchy(local_store_path.c_str(), zarr_version);
     }
@@ -181,14 +181,14 @@ namespace xt
      * @return returns a ``xzarr_hierarchy`` handler.
      */
     template <class store_type>
-    xzarr_hierarchy<store_type> get_zarr_hierarchy(store_type& store, const std::string& zarr_version = "")
+    inline xzarr_hierarchy<store_type> get_zarr_hierarchy(store_type& store, const std::string& zarr_version = "")
     {
         std::string zarr_ver;
         if (zarr_version.empty())
         {
             std::vector<std::string> keys;
             std::vector<std::string> prefixes;
-            store.list_dir("/", keys, prefixes);
+            store.list_dir("", keys, prefixes);
             if (std::count(keys.begin(), keys.end(), "zarr.json"))
             {
                 zarr_ver = "3";
@@ -207,13 +207,13 @@ namespace xt
         return h;
     }
 
-    xzarr_hierarchy<xzarr_file_system_store> get_zarr_hierarchy(const char* local_store_path, const std::string& zarr_version = "")
+    inline xzarr_hierarchy<xzarr_file_system_store> get_zarr_hierarchy(const char* local_store_path, const std::string& zarr_version = "")
     {
         xzarr_file_system_store store(local_store_path);
         return get_zarr_hierarchy(store, zarr_version);
     }
 
-    xzarr_hierarchy<xzarr_file_system_store> get_zarr_hierarchy(const std::string& local_store_path, const std::string& zarr_version = "")
+    inline xzarr_hierarchy<xzarr_file_system_store> get_zarr_hierarchy(const std::string& local_store_path, const std::string& zarr_version = "")
     {
         return get_zarr_hierarchy(local_store_path.c_str(), zarr_version);
     }

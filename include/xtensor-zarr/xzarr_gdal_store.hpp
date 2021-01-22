@@ -216,7 +216,11 @@ namespace xt
      */
     inline void xzarr_gdal_store::list_dir(const std::string& prefix, std::vector<std::string>& keys, std::vector<std::string>& prefixes)
     {
-        std::string path = m_root + '/' + prefix;
+        std::string path = m_root;
+        if (!prefix.empty())
+        {
+            path += '/' + prefix;
+        }
         char** names = VSIReadDir(path.c_str());
         if (names == NULL)
         {
@@ -231,7 +235,7 @@ namespace xt
                 break;
             }
             VSIStatBufL sStat;
-            VSIStatL(p, &sStat);
+            int tmp = VSIStatL(p, &sStat);
             if (VSI_ISDIR(sStat.st_mode)) // this is a directory
             {
                 prefixes.push_back(p);

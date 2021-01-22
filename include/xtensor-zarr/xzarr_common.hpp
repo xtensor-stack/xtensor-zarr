@@ -10,7 +10,8 @@
 #ifndef XTENSOR_ZARR_COMMON_HPP
 #define XTENSOR_ZARR_COMMON_HPP
 
-#include "nlohmann/json.hpp"
+#include <xtensor-io/xio_binary.hpp>
+#include <nlohmann/json.hpp>
 
 namespace xt
 {
@@ -41,11 +42,11 @@ namespace xt
         std::size_t zarr_major;
         if (i == std::string::npos)
         {
-            zarr_major = std::stoi(zarr_version);
+            zarr_major = static_cast<std::size_t>(std::stoi(zarr_version));
         }
         else
         {
-            zarr_major = std::stoi(zarr_version.substr(0, i));
+            zarr_major = static_cast<std::size_t>(std::stoi(zarr_version.substr(0, i)));
         }
         if ((zarr_major < 2) || (zarr_major > 3))
         {
@@ -82,18 +83,6 @@ namespace xt
         std::string m_directory;
         char m_separator;
         std::size_t m_zarr_version;
-    };
-
-    // xzarr_attrs is meant to serve as a base class extension for xchunked_array
-    // it provides JSON attribute getter and setter methods
-    class xzarr_attrs
-    {
-    public:
-        nlohmann::json attrs();
-        void set_attrs(const nlohmann::json& attrs);
-
-    private:
-        nlohmann::json m_attrs;
     };
 
     /******************************
@@ -145,20 +134,6 @@ namespace xt
             fname.append(std::to_string(*it));
         }
         path = m_directory + fname;
-    }
-
-    /******************************
-     * xzarr_attrs implementation *
-     ******************************/
-
-    inline nlohmann::json xzarr_attrs::attrs()
-    {
-        return m_attrs;
-    }
-
-    inline void xzarr_attrs::set_attrs(const nlohmann::json& attrs)
-    {
-        m_attrs = attrs;
     }
 
 }

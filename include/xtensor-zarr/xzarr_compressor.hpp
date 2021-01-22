@@ -19,25 +19,25 @@
 namespace xt
 {
     template <class T>
-    T get_nan()
+    inline T get_nan()
     {
         return 0;
     }
 
     template <>
-    float get_nan<float>()
+    inline float get_nan<float>()
     {
         return std::nanf("");
     }
 
     template <>
-    double get_nan<double>()
+    inline double get_nan<double>()
     {
         return std::nan("");
     }
 
     template <>
-    long double get_nan<long double>()
+    inline long double get_nan<long double>()
     {
         return std::nanl("");
     }
@@ -61,14 +61,17 @@ namespace xt
         }
         if (fill_value_json.is_null())
         {
-            auto a = chunked_file_array<data_type, io_handler, layout_type::dynamic, xzarr_index_path, xzarr_attrs>(shape, chunk_shape, path, chunk_pool_size, layout);
+            auto a = chunked_file_array<data_type, io_handler, layout_type::dynamic, xzarr_index_path>(shape, chunk_shape, path, chunk_pool_size, layout);
             auto& i2p = a.chunks().get_index_path();
             i2p.set_separator(separator);
             i2p.set_zarr_version(zarr_version);
             auto io_config = store.get_io_config();
             a.chunks().configure(config, io_config);
-            a.set_attrs(attrs);
-            return zarray(std::move(a));
+            auto z = zarray(std::move(a));
+            auto metadata = z.get_metadata();
+            metadata["zarr"] = attrs;
+            z.set_metadata(metadata);
+            return z;
         }
         else
         {
@@ -81,14 +84,17 @@ namespace xt
             {
                 fill_value = fill_value_json;
             }
-            auto a = chunked_file_array<data_type, io_handler, layout_type::dynamic, xzarr_index_path, xzarr_attrs>(shape, chunk_shape, path, fill_value, chunk_pool_size, layout);
+            auto a = chunked_file_array<data_type, io_handler, layout_type::dynamic, xzarr_index_path>(shape, chunk_shape, path, fill_value, chunk_pool_size, layout);
             auto& i2p = a.chunks().get_index_path();
             i2p.set_separator(separator);
             i2p.set_zarr_version(zarr_version);
             auto io_config = store.get_io_config();
             a.chunks().configure(config, io_config);
-            a.set_attrs(attrs);
-            return zarray(std::move(a));
+            auto z = zarray(std::move(a));
+            auto metadata = z.get_metadata();
+            metadata["zarr"] = attrs;
+            z.set_metadata(metadata);
+            return z;
         }
     }
 

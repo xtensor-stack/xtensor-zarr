@@ -33,6 +33,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake")
 
 find_package(nlohmann_json 3.2.0 REQUIRED)
 
+find_package(xtensor 0.23.0 REQUIRED)
+
+find_package(xtensor-io 0.12.0 REQUIRED)
+
+find_package(zarray 0.0.3 REQUIRED)
+
 #Remove the following lines when xtensor-io is fixed
 include(CMakeFindDependencyMacro)
 find_dependency(xtensor REQUIRED)
@@ -62,6 +68,7 @@ OPTION(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
 OPTION(DOWNLOAD_GBENCHMARK "download google benchmark and build from source" ON)
 
 add_library(xtensor-zarr INTERFACE)
+target_link_libraries(xtensor-zarr INTERFACE xtensor-io zarray)
 
 target_include_directories(xtensor-zarr
     INTERFACE
