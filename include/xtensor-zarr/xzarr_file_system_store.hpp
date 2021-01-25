@@ -182,7 +182,7 @@ namespace xt
      */
     inline std::string xzarr_file_system_store::get(const std::string& key)
     {
-        return std::move(xzarr_file_system_stream(m_root + '/' + key));
+        return xzarr_file_system_stream(m_root + '/' + key);
     }
 
     inline std::string xzarr_file_system_store::get_root()

@@ -193,7 +193,7 @@ namespace xt
      */
     inline std::string xzarr_gdal_store::get(const std::string& key)
     {
-        return std::move(xzarr_gdal_stream(m_root + '/' + key));
+        return xzarr_gdal_stream(m_root + '/' + key);
     }
 
     inline std::string xzarr_gdal_store::get_root()

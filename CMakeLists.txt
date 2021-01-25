@@ -31,13 +31,17 @@ message(STATUS "Building xtensor-zarr v${${PROJECT_NAME}_VERSION}")
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake")
 
-find_package(nlohmann_json 3.2.0 REQUIRED)
+set(nlohmann_json_required_version "3.2.0" )
+find_package(nlohmann_json ${nlohmann_json_required_version} REQUIRED)
 
-find_package(xtensor 0.23.0 REQUIRED)
+set(xtensor_required_version "0.23.0")
+find_package(xtensor ${xtensor_required_version} REQUIRED)
 
-find_package(xtensor-io 0.12.0 REQUIRED)
+set(xtensor_io_required_version "0.12.0")
+find_package(xtensor-io ${xtensor_io_required_version} REQUIRED)
 
-find_package(zarray 0.0.3 REQUIRED)
+set(zarray_required_version "0.0.3")
+find_package(zarray ${zarray_required_version} REQUIRED)
 
 #Remove the following lines when xtensor-io is fixed
 include(CMakeFindDependencyMacro)
