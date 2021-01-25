@@ -14,7 +14,6 @@
 #include "xtensor-io/xio_binary.hpp"
 #include "xtensor-zarr/xzarr_hierarchy.hpp"
 #include "xtensor-zarr/xzarr_file_system_store.hpp"
-#include "xtensor-zarr/xzarr_gcs_store.hpp"
 #include "xtensor-zarr/xzarr_compressor.hpp"
 
 #include "gtest/gtest.h"
@@ -68,17 +67,6 @@ namespace xt
         //xarray<double> a2 = z2.get_array<double>();
         //EXPECT_EQ(a2(2, 1), v);
         //EXPECT_EQ(a2.attrs(), attrs);
-    }
-
-    TEST(xzarr_hierarchy, read_array_gcs)
-    {
-        xzarr_register_compressor<xzarr_gcs_store, xio_gzip_config>();
-        gcs::Client client((gcs::ClientOptions(gcs::oauth2::CreateAnonymousCredentials())));
-        xzarr_gcs_store s("zarr-demo/v3/test.zr3", client);
-        auto h = get_zarr_hierarchy(s);
-        zarray z = h.get_array("/arthur/dent");
-        auto a = arange(5 * 10).reshape({5, 10});
-        EXPECT_EQ(a, z.get_array<int32_t>());
     }
 
     TEST(xzarr_hierarchy, create_group)
@@ -152,34 +140,6 @@ namespace xt
         store1.erase_prefix("path_to");
         // check that the directory hase been erased
         EXPECT_EQ(fs::exists("store1/path_to"), false);
-    }
-
-    TEST(xzarr_hierarchy, gcs_store)
-    {
-        gcs::Client client((gcs::ClientOptions(gcs::oauth2::CreateAnonymousCredentials())));
-        xzarr_gcs_store s1("zarr-demo/v3/test.zr3", client);
-        auto keys1 = s1.list_prefix("data/root/arthur/dent/");
-        std::string ref1[] = {"data/root/arthur/dent/c0/0",
-                              "data/root/arthur/dent/c0/1",
-                              "data/root/arthur/dent/c1/0",
-                              "data/root/arthur/dent/c1/1",
-                              "data/root/arthur/dent/c2/0",
-                              "data/root/arthur/dent/c2/1"};
-        for (int i = 0; i < 6; i++)
-        {
-            EXPECT_EQ(keys1[i], ref1[i]);
-        }
-
-        xzarr_gcs_store s2("zarr-demo/v3/test.zr3/meta/root/marvin", client);
-        auto keys2 = s2.list();
-        std::string ref2[] = {"android.array.json",
-                              "paranoid.group.json"};
-        for (int i = 0; i < 2; i++)
-        {
-            EXPECT_EQ(keys2[i], ref2[i]);
-            // we don't have rights to erase objects in this bucket as an anonymous client
-            EXPECT_THROW(s2.erase(keys2[i]), std::runtime_error);
-        }
     }
 
     TEST(xzarr_hierarchy, write_v2)

@@ -76,23 +76,23 @@ namespace xt
      * xzarr_file_system_stream implementation *
      *******************************************/
 
-    xzarr_file_system_stream::xzarr_file_system_stream(const std::string& path)
+    inline xzarr_file_system_stream::xzarr_file_system_stream(const std::string& path)
         : m_path(path)
     {
     }
 
-    void xzarr_file_system_stream::erase()
+    inline void xzarr_file_system_stream::erase()
     {
         fs::remove(m_path);
     }
 
-    bool xzarr_file_system_stream::exists()
+    inline bool xzarr_file_system_stream::exists()
     {
         std::ifstream stream(m_path);
         return stream.good();
     }
 
-    xzarr_file_system_stream::operator std::string() const
+    inline xzarr_file_system_stream::operator std::string() const
     {
         std::ifstream stream(m_path);
         if (!stream.is_open())
@@ -103,17 +103,17 @@ namespace xt
         return bytes;
     }
 
-    void xzarr_file_system_stream::operator=(const std::vector<char>& value)
+    inline void xzarr_file_system_stream::operator=(const std::vector<char>& value)
     {
         assign(value.data(), value.size());
     }
 
-    void xzarr_file_system_stream::operator=(const std::string& value)
+    inline void xzarr_file_system_stream::operator=(const std::string& value)
     {
         assign(value.c_str(), value.size());
     }
 
-    void xzarr_file_system_stream::assign(const char* value, std::size_t size)
+    inline void xzarr_file_system_stream::assign(const char* value, std::size_t size)
     {
         // maybe create directories
         std::size_t i = m_path.rfind('/');
@@ -133,7 +133,7 @@ namespace xt
             }
         }
         std::ofstream stream(m_path, std::ofstream::binary);
-        stream.write(value, size);
+        stream.write(value, std::streamsize(size));
         stream.flush();
     }
 
@@ -141,7 +141,7 @@ namespace xt
      * xzarr_file_system_store implementation *
      ******************************************/
 
-    xzarr_file_system_store::xzarr_file_system_store(const std::string& root)
+    inline xzarr_file_system_store::xzarr_file_system_store(const std::string& root)
         : m_root(root)
     {
         if (m_root.empty())
@@ -154,12 +154,12 @@ namespace xt
         }
     }
 
-    xzarr_file_system_stream xzarr_file_system_store::operator[](const std::string& key)
+    inline xzarr_file_system_stream xzarr_file_system_store::operator[](const std::string& key)
     {
         return xzarr_file_system_stream(m_root + '/' + key);
     }
 
-    void xzarr_file_system_store::set(const std::string& key, const std::vector<char>& value)
+    inline void xzarr_file_system_store::set(const std::string& key, const std::vector<char>& value)
     {
         xzarr_file_system_stream(m_root + '/' + key) = value;
     }
@@ -169,7 +169,7 @@ namespace xt
      * @param key the key
      * @param value the value
      */
-    void xzarr_file_system_store::set(const std::string& key, const std::string& value)
+    inline void xzarr_file_system_store::set(const std::string& key, const std::string& value)
     {
         xzarr_file_system_stream(m_root + '/' + key) = value;
     }
@@ -180,17 +180,17 @@ namespace xt
      *
      * @return returns the value for the given key.
      */
-    std::string xzarr_file_system_store::get(const std::string& key)
+    inline std::string xzarr_file_system_store::get(const std::string& key)
     {
-        return std::move(xzarr_file_system_stream(m_root + '/' + key));
+        return xzarr_file_system_stream(m_root + '/' + key);
     }
 
-    std::string xzarr_file_system_store::get_root()
+    inline std::string xzarr_file_system_store::get_root()
     {
         return m_root;
     }
 
-    xio_disk_config xzarr_file_system_store::get_io_config()
+    inline xio_disk_config xzarr_file_system_store::get_io_config()
     {
         xio_disk_config c;
         return c;
@@ -203,7 +203,7 @@ namespace xt
      * @param keys set of keys to be returned by reference
      * @param prefixes set of prefixes to be returned by reference
      */
-    void xzarr_file_system_store::list_dir(const std::string& prefix, std::vector<std::string>& keys, std::vector<std::string>& prefixes)
+    inline void xzarr_file_system_store::list_dir(const std::string& prefix, std::vector<std::string>& keys, std::vector<std::string>& prefixes)
     {
         std::string path = m_root + '/' + prefix;
         for (const auto& entry: fs::directory_iterator(path))
@@ -225,7 +225,7 @@ namespace xt
      *
      * @return returns a set of keys.
      */
-    std::vector<std::string> xzarr_file_system_store::list()
+    inline std::vector<std::string> xzarr_file_system_store::list()
     {
         return list_prefix("");
     }
@@ -237,7 +237,7 @@ namespace xt
      *
      * @return returns a set of keys with a given prefix.
      */
-    std::vector<std::string> xzarr_file_system_store::list_prefix(const std::string& prefix)
+    inline std::vector<std::string> xzarr_file_system_store::list_prefix(const std::string& prefix)
     {
         std::string path = m_root + '/' + prefix;
         std::vector<std::string> keys;
@@ -253,7 +253,7 @@ namespace xt
      * Erase the given (key, value) pair from the store.
      * @param key the key
      */
-    void xzarr_file_system_store::erase(const std::string& key)
+    inline void xzarr_file_system_store::erase(const std::string& key)
     {
         fs::remove(m_root + '/' + key);
     }
@@ -262,7 +262,7 @@ namespace xt
      * Erase all the keys with the given prefix from the store.
      * @param prefix the prefix
      */
-    void xzarr_file_system_store::erase_prefix(const std::string& prefix)
+    inline void xzarr_file_system_store::erase_prefix(const std::string& prefix)
     {
         fs::remove_all(m_root + '/' + prefix);
     }

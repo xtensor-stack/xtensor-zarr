@@ -99,7 +99,7 @@ namespace xt
     void xzarr_gcs_stream::assign(const char* value, std::size_t size)
     {
         auto writer = m_client.WriteObject(m_bucket, m_path);
-        writer.write(value, size);
+        writer.write(value, static_cast<std::streamsize>(size));
         writer.flush();
     }
 
@@ -153,7 +153,7 @@ namespace xt
     std::string xzarr_gcs_store::get(const std::string& key) const
     {
         std::string key2 = ensure_startswith_slash(key);
-        return std::move(xzarr_gcs_stream(m_root + key2, m_bucket, m_client));
+        return xzarr_gcs_stream(m_root + key2, m_bucket, m_client);
     }
 
     void xzarr_gcs_store::list_dir(const std::string& prefix, std::vector<std::string>& keys, std::vector<std::string>& prefixes) const

@@ -1,4 +1,5 @@
-# xtensor-zarr
+# ![xtensor-zarr](docs/source/xtensor-zarr.svg)
+
 [![Azure Pipelines](https://dev.azure.com/xtensor-stack/xtensor-stack/_apis/build/status/xtensor-stack.xtensor-zarr?branchName=master)](https://dev.azure.com/xtensor-stack/xtensor-stack/_build/latest?definitionId=9&branchName=master)
 [![ReadTheDocs](https://readthedocs.org/projects/xtensor-zarr/badge/?version=latest)](http://xtensor-zarr.readthedocs.io/en/latest)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/xtensor-stack/xtensor-zarr/master?filepath=examples%2Fzarr_v3.ipynb)

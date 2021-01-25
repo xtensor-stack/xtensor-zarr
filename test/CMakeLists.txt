@@ -78,7 +78,9 @@ include_directories(${GTEST_INCLUDE_DIRS} SYSTEM)
 set(XTENSOR_ZARR_TESTS
     main.cpp
     test_zarr.cpp
+    test_gcs.cpp
     test_aws.cpp
+    test_gdal.cpp
 )
 
 add_executable(test_xtensor_zarr ${XTENSOR_ZARR_TESTS} ${XTENSOR_ZARR_HEADERS})

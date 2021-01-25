@@ -14,7 +14,7 @@
 
 namespace xt
 {
-    TEST(xzarr, aws_store)
+    TEST(aws, aws_store)
     {
         Aws::SDKOptions options;
         Aws::InitAPI(options);
@@ -30,7 +30,7 @@ namespace xt
         Aws::ShutdownAPI(options);
     }
 
-    TEST(xzarr, aws_store_list_prefix)
+    TEST(aws, aws_store_list_prefix)
     {
         Aws::SDKOptions options;
         Aws::InitAPI(options);
@@ -45,7 +45,7 @@ namespace xt
         Aws::ShutdownAPI(options);
     }
 
-    TEST(xzarr, aws_store_list_dir)
+    TEST(aws, aws_store_list_dir)
     {
         Aws::SDKOptions options;
         Aws::InitAPI(options);
