@@ -85,6 +85,8 @@ namespace xt
     {
         std::string s;
         nlohmann::json attrs;
+        std::vector<std::string> keys;
+        std::vector<std::string> prefixes;
         switch (zarr_version_major)
         {
             case 3:
@@ -92,7 +94,11 @@ namespace xt
                 break;
             case 2:
                 s = store[path + "/.zarray"];
-                attrs = std::string(store[path + "/.zattrs"]);
+                store.list_dir(path, keys, prefixes);
+                if (std::count(keys.begin(), keys.end(), ".zattrs"))
+                {
+                    attrs = std::string(store[path + "/.zattrs"]);
+                }
                 break;
             default:
                 break;
