@@ -8,6 +8,7 @@
 ****************************************************************************/
 
 #include "xtensor-io/xio_gzip.hpp"
+#include "xtensor-io/xio_blosc.hpp"
 #include "xtensor-zarr/xzarr_hierarchy.hpp"
 #include "xtensor-zarr/xzarr_gcs_store.hpp"
 #include "xtensor-zarr/xzarr_compressor.hpp"
@@ -54,4 +55,22 @@ namespace xt
             EXPECT_THROW(s2.erase(keys2[i]), std::runtime_error);
         }
     }
+
+    // TODO: enable test when zview is fixed
+    //TEST(gcs, view)
+    //{
+    //    //init_zsystem();
+    //    using dispatcher_type = zdispatcher_t<detail::xview_dummy_functor, 1, 1>;
+    //    dispatcher_type::init();
+    //    xzarr_register_compressor<xzarr_gcs_store, xio_blosc_config>();
+    //    gcs::Client client((gcs::ClientOptions(gcs::oauth2::CreateAnonymousCredentials())));
+    //    xzarr_gcs_store s("pangeo-data/gpm_imerg/late/chunk_time/precipitationCal", client);
+    //    std::string metadata = s.get(".zarray");
+    //    std::cerr << metadata << std::endl;
+    //    auto h = get_zarr_hierarchy(s, "2");
+    //    auto z = h.get_array("");
+    //    xstrided_slice_vector sv({1000, all(), all()});
+    //    zarray z2 = make_strided_view(z, sv);
+    //    auto a = z2.get_array<float>();
+    //}
 }

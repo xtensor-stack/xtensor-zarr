@@ -2,7 +2,7 @@
 
 [![Azure Pipelines](https://dev.azure.com/xtensor-stack/xtensor-stack/_apis/build/status/xtensor-stack.xtensor-zarr?branchName=master)](https://dev.azure.com/xtensor-stack/xtensor-stack/_build/latest?definitionId=9&branchName=master)
 [![ReadTheDocs](https://readthedocs.org/projects/xtensor-zarr/badge/?version=latest)](http://xtensor-zarr.readthedocs.io/en/latest)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/xtensor-stack/xtensor-zarr/master?filepath=examples%2Fzarr_v3.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/xtensor-stack/xtensor-zarr/master?urlpath=lab%2Ftree%2Fexamples)
 [![Join the Gitter Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/QuantStack/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Implementation of the Zarr version 3.0 core protocol based on xtensor

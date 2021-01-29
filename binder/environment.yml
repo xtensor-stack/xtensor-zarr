@@ -3,13 +3,14 @@ channels:
   - conda-forge
 dependencies:
   - python=3.8
-  - notebook
-  - xeus-cling=0.5.1
-  - xwidgets=0.17.0
+  - jupyterlab=3
+  - xeus-cling=0.12.0
+  - xwidgets=0.25.0
+  - jupyterlab_widgets=1.0.0
   - ffmpeg=4.3.1  # openimageio is being added as a runtime requirement to xtensor-io
   - widgetsnbextension
-  - xtensor-io=0.10.1
-  - zarray
+  - xtensor-io=0.12.1
+  - zarray=0.0.3
   - bash_kernel
   - nlohmann_json
   - cpp-filesystem
