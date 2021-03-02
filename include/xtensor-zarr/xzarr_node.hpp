@@ -35,7 +35,7 @@ namespace xt
     class xzarr_node
     {
     public:
-        xzarr_node(store_type& store, const std::string& path);
+        xzarr_node(store_type& store, const std::string& path, const std::size_t zarr_version_major);
 
         xzarr_group<store_type> create_group(const std::string& name, const nlohmann::json& attrs=nlohmann::json::object(), const nlohmann::json& extensions=nlohmann::json::array());
 
@@ -55,11 +55,13 @@ namespace xt
         nlohmann::json m_json;
         std::string m_path;
         xzarr_node_type m_node_type;
+        std::size_t m_zarr_version_major;
     };
 
     template <class store_type>
-    xzarr_node<store_type>::xzarr_node(store_type& store, const std::string& path)
+    xzarr_node<store_type>::xzarr_node(store_type& store, const std::string& path, const std::size_t zarr_version_major)
         : m_store(store)
+        , m_zarr_version_major(zarr_version_major)
     {
         m_path = path;
         if (m_path.front() != '/')
@@ -100,7 +102,7 @@ namespace xt
     xzarr_group<store_type> xzarr_node<store_type>::create_group(const std::string& name, const nlohmann::json& attrs, const nlohmann::json& extensions)
     {
         m_node_type = xzarr_node_type::explicit_group;
-        xzarr_group<store_type> g(m_store, m_path + '/' + name);
+        xzarr_group<store_type> g(m_store, m_path + '/' + name, m_zarr_version_major);
         return g.create_group(attrs, extensions);
     }
 
@@ -111,7 +113,7 @@ namespace xt
         {
             XTENSOR_THROW(std::runtime_error, "Node is not a group: " + m_path);
         }
-        xzarr_group<store_type> g(m_store, m_path);
+        xzarr_group<store_type> g(m_store, m_path, m_zarr_version_major);
         return g;
     }
 
@@ -120,7 +122,7 @@ namespace xt
     zarray xzarr_node<store_type>::create_array(const std::string& name, shape_type shape, shape_type chunk_shape, const std::string& dtype, O o)
     {
         m_node_type = xzarr_node_type::array;
-        return create_zarr_array(m_store, m_path + '/' + name, shape, chunk_shape, dtype, o.chunk_memory_layout, o.chunk_separator, o.compressor, o.attrs, o.chunk_pool_size, o.fill_value);
+        return create_zarr_array(m_store, m_path + '/' + name, shape, chunk_shape, dtype, o.chunk_memory_layout, o.chunk_separator, o.compressor, o.attrs, o.chunk_pool_size, o.fill_value, m_zarr_version_major);
     }
 
     template <class store_type>
@@ -130,7 +132,7 @@ namespace xt
         {
             XTENSOR_THROW(std::runtime_error, "Node is not an array: " + m_path);
         }
-        return get_zarr_array(m_store, m_path, chunk_pool_size);
+        return get_zarr_array(m_store, m_path, chunk_pool_size, m_zarr_version_major);
     }
 
     template <class store_type>
@@ -210,7 +212,7 @@ namespace xt
     template <class store_type>
     xzarr_node<store_type> xzarr_node<store_type>::operator[](const std::string& name)
     {
-        return xzarr_node<store_type>(m_store, m_path + '/' + name);
+        return xzarr_node<store_type>(m_store, m_path + '/' + name, m_zarr_version_major);
     }
 
     template <class store_type>

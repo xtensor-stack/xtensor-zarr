@@ -18,7 +18,7 @@ namespace xt
     class xzarr_group
     {
     public:
-        xzarr_group(store_type& store, const std::string& path);
+        xzarr_group(store_type& store, const std::string& path, const std::size_t zarr_version_major);
 
         xzarr_group create_group(const nlohmann::json& attrs=nlohmann::json::object(), const nlohmann::json& extensions=nlohmann::json::array());
 
@@ -29,17 +29,22 @@ namespace xt
         store_type& m_store;
         nlohmann::json m_json;
         std::string m_path;
+        std::size_t m_zarr_version_major;
     };
 
     template <class store_type>
-    xzarr_group<store_type>::xzarr_group(store_type& store, const std::string& path)
+    xzarr_group<store_type>::xzarr_group(store_type& store, const std::string& path, const std::size_t zarr_version_major)
         : m_store(store)
         , m_path(path)
+        , m_zarr_version_major(zarr_version_major)
     {
-        auto f = m_store["meta/root" + m_path + ".group.json"];
-        if (f.exists())
+        if (zarr_version_major == 3)
         {
-            m_json = nlohmann::json::parse(std::string(f));
+            auto f = m_store["meta/root" + m_path + ".group.json"];
+            if (f.exists())
+            {
+                m_json = nlohmann::json::parse(std::string(f));
+            }
         }
     }
 
@@ -47,9 +52,20 @@ namespace xt
     xzarr_group<store_type> xzarr_group<store_type>::create_group(const nlohmann::json& attrs, const nlohmann::json& extensions)
     {
         m_json = nlohmann::json::object();
-        m_json["attributes"] = attrs;
-        m_json["extensions"] = extensions;
-        m_store["meta/root" + m_path + ".group.json"] = m_json.dump(4);
+        switch (m_zarr_version_major)
+        {
+            case 3:
+                m_json["attributes"] = attrs;
+                m_json["extensions"] = extensions;
+                m_store["meta/root" + m_path + ".group.json"] = m_json.dump(4);
+                break;
+            case 2:
+                m_json["zarr_format"] = 2;
+                m_store[m_path + ".zgroup"] = m_json.dump(4);
+                break;
+            default:
+                break;
+        }
         return *this;
     }
 

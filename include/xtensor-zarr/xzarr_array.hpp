@@ -19,7 +19,7 @@
 namespace xt
 {
     template <class store_type, class shape_type, class C>
-    zarray create_zarr_array(store_type store, const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout, char chunk_separator, const C& compressor, const nlohmann::json& attrs, std::size_t chunk_pool_size, const nlohmann::json& fill_value, const std::size_t zarr_version_major = 3)
+    zarray create_zarr_array(store_type store, const std::string& path, shape_type shape, shape_type chunk_shape, const std::string& dtype, char chunk_memory_layout, char chunk_separator, const C& compressor, const nlohmann::json& attrs, std::size_t chunk_pool_size, const nlohmann::json& fill_value, const std::size_t zarr_version_major)
     {
         nlohmann::json j;
         nlohmann::json compressor_config;
@@ -45,7 +45,11 @@ namespace xt
                 chunk_separator = '.';
                 j["dtype"] = dtype;
                 j["order"] = std::string(1, chunk_memory_layout);
-                if (compressor.name != "binary")
+                if (compressor.name == "binary")
+                {
+                    j["compressor"] = nlohmann::json();
+                }
+                else
                 {
                     compressor.write_to(compressor_config);
                     j["compressor"] = compressor_config;
@@ -77,11 +81,11 @@ namespace xt
             default:
                 break;
         }
-        return xchunked_array_factory<store_type>::build(store, compressor.name, dtype, chunk_memory_layout, shape, chunk_shape, full_path, chunk_separator, attrs, compressor_config, chunk_pool_size, fill_value, 3);
+        return xchunked_array_factory<store_type>::build(store, compressor.name, dtype, chunk_memory_layout, shape, chunk_shape, full_path, chunk_separator, attrs, compressor_config, chunk_pool_size, fill_value, zarr_version_major);
     }
 
     template <class store_type>
-    zarray get_zarr_array(store_type store, const std::string& path, std::size_t chunk_pool_size, const std::size_t zarr_version_major = 3)
+    zarray get_zarr_array(store_type store, const std::string& path, std::size_t chunk_pool_size, const std::size_t zarr_version_major)
     {
         std::string s;
         nlohmann::json attrs;
