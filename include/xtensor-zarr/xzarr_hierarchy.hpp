@@ -114,26 +114,26 @@ namespace xt
     template <class store_type>
     xzarr_group<store_type> xzarr_hierarchy<store_type>::create_group(const std::string& path, const nlohmann::json& attrs, const nlohmann::json& extensions)
     {
-        xzarr_group<store_type> g(m_store, path);
+        xzarr_group<store_type> g(m_store, path, m_zarr_version_major);
         return g.create_group(attrs, extensions);
     }
 
     template <class store_type>
     xzarr_node<store_type> xzarr_hierarchy<store_type>::operator[](const std::string& path)
     {
-        return xzarr_node<store_type>(m_store, path);
+        return xzarr_node<store_type>(m_store, path, m_zarr_version_major);
     }
 
     template <class store_type>
     nlohmann::json xzarr_hierarchy<store_type>::get_children(const std::string& path)
     {
-        return xzarr_node<store_type>(m_store, path).get_children();
+        return xzarr_node<store_type>(m_store, path, m_zarr_version_major).get_children();
     }
 
     template <class store_type>
     nlohmann::json xzarr_hierarchy<store_type>::get_nodes(const std::string& path)
     {
-        return xzarr_node<store_type>(m_store, path).get_nodes();
+        return xzarr_node<store_type>(m_store, path, m_zarr_version_major).get_nodes();
     }
 
     /************************************
