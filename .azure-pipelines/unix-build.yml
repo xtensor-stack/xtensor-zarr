@@ -17,6 +17,11 @@ steps:
 
   - script: |
       source activate xtensor-zarr
+      conda install tbb==2020.2 -c conda-forge
+    displayName: Workaround missing TBB
+
+  - script: |
+      source activate xtensor-zarr
       export LDFLAGS="${LDFLAGS} -Wl,-rpath,$CONDA_PREFIX/lib"
       export LINKFLAGS="${LDFLAGS}"
       mkdir build
