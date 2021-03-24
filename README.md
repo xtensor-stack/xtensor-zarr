@@ -21,17 +21,18 @@ Implementation of the Zarr version 3.0 core protocol based on xtensor
 conda install xtensor-zarr -c conda-forge
 ```
 
-- `xtensor-zarr` depends on `xtensor` `^0.21.9`, `xtensor` `^0.8` and `nlohmann_json`.
+- `xtensor-zarr` depends on `xtensor` `^0.23.4`, `xtensor-io` `^0.12.4`, `zarray` `^0.0.5` and `nlohmann_json`.
 
-- `google-cloud-cpp`, `aws-sdk-cpp`, `cpp-filesystem`, `zlib`, and `blosc` are optional dependencies to `xtensor-zarr`.
+- `google-cloud-cpp`, `aws-sdk-cpp`, `cpp-filesystem`, `zlib`, `blosc` and `gdal` are optional dependencies to `xtensor-zarr`.
 
   - `google-cloud-cpp` is required to access a store in Google Cloud Storage.
   - `aws-sdk-cpp` is required to access a store in AWS S3.
   - `cpp-filesystem` is required to access a store on the local file system.
   - `zlib` is required for the GZip compressor.
   - `blosc` is required for the Blosc compressor.
+  - `gdal` is required to access a store through its Virtual File System.
 
-All five libraries are available for the conda package manager.
+All sic libraries are available for the conda package manager.
 
 You can also install `xtensor-zarr` from source:
 
