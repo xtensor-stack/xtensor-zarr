@@ -15,10 +15,10 @@ Implementation of the Zarr version 3.0 core protocol based on xtensor
 
 ## Installation
 
-`xtensor-zarr` is a header-only library. We provide a package for the conda package manager.
+`xtensor-zarr` is a header-only library. We provide a package for the mamba (or conda) package manager.
 
 ```bash
-conda install xtensor-zarr -c conda-forge
+mamba install xtensor-zarr -c conda-forge
 ```
 
 - `xtensor-zarr` depends on `xtensor` `^0.23.4`, `xtensor-io` `^0.12.4`, `zarray` `^0.0.5` and `nlohmann_json`.
@@ -31,8 +31,6 @@ conda install xtensor-zarr -c conda-forge
   - `zlib` is required for the GZip compressor.
   - `blosc` is required for the Blosc compressor.
   - `gdal` is required to access a store through its Virtual File System.
-
-All sic libraries are available for the conda package manager.
 
 You can also install `xtensor-zarr` from source:
 
