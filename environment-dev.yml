@@ -10,10 +10,9 @@ dependencies:
   - aws-sdk-cpp
   - cpp-filesystem
   - zlib
-  - xtensor-io=0.12.4
-  - xtensor=0.23.4
+  - xtensor-io=0.12.6
   - gdal
-  - zarray=0.0.5
+  - zarray=0.0.6
   # Test dependencies
   - fsspec
   - numpy

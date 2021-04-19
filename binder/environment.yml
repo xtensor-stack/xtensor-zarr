@@ -9,8 +9,8 @@ dependencies:
   - jupyterlab_widgets=1.0.0
   - ffmpeg=4.3.1  # openimageio is being added as a runtime requirement to xtensor-io
   - widgetsnbextension
-  - xtensor-io=0.12.4
-  - zarray=0.0.5
+  - xtensor-io=0.12.6
+  - zarray=0.0.6
   - cppcolormap=1.3.0
   - bash_kernel
   - nlohmann_json
