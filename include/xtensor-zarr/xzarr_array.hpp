@@ -28,6 +28,10 @@ namespace xt
             case 3:
                 j["chunk_grid"]["type"] = "regular";
                 j["chunk_grid"]["chunk_shape"] = chunk_shape;
+                if (chunk_separator == 0)
+                {
+                    chunk_separator = '/';
+                }
                 j["chunk_grid"]["separator"] = std::string(1, chunk_separator);
                 j["data_type"] = dtype;
                 j["chunk_memory_layout"] = std::string(1, chunk_memory_layout);
@@ -42,7 +46,14 @@ namespace xt
                 break;
             case 2:
                 j["chunks"] = chunk_shape;
-                chunk_separator = '.';
+                if (chunk_separator == 0)
+                {
+                    chunk_separator = '.';
+                }
+                else
+                {
+                    j["dimension_separator"] = std::string(1, chunk_separator);
+                }
                 j["dtype"] = dtype;
                 j["order"] = std::string(1, chunk_memory_layout);
                 if (compressor.name == "binary")
@@ -144,10 +155,24 @@ namespace xt
                 json_chunk_shape = j["chunks"];
                 dtype = j["dtype"];
                 chunk_memory_layout = j["order"];
-                compressor = j["compressor"]["id"];
-                compressor_config = j["compressor"];
-                compressor_config.erase("id");
-                chunk_separator = '.';
+                if (j["compressor"].is_null())
+                {
+                    compressor = "binary";
+                }
+                else
+                {
+                    compressor = j["compressor"]["id"];
+                    compressor_config = j["compressor"];
+                    compressor_config.erase("id");
+                }
+                if (j.contains("dimension_separator"))
+                {
+                    chunk_separator = j["dimension_separator"];
+                }
+                else
+                {
+                    chunk_separator = '.';
+                }
                 full_path = store.get_root() + '/' + path;
                 break;
             default:

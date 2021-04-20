@@ -27,7 +27,7 @@ namespace xt
 
         xzarr_create_array_options()
             : chunk_memory_layout('C')
-            , chunk_separator('/')
+            , chunk_separator(0)
             , compressor(C())
             , attrs(nlohmann::json::object())
             , chunk_pool_size(1)
