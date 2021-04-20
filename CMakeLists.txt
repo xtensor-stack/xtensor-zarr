@@ -34,6 +34,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake")
 set(nlohmann_json_REQUIRED_VERSION "3.2.0" )
 find_package(nlohmann_json ${nlohmann_json_REQUIRED_VERSION} REQUIRED)
 
+set(xtensor_REQUIRED_VERSION "0.23.7")
+find_package(xtensor-io ${xtensor_io_REQUIRED_VERSION} REQUIRED)
+
 set(xtensor_io_REQUIRED_VERSION "0.12.6")
 find_package(xtensor-io ${xtensor_io_REQUIRED_VERSION} REQUIRED)
 
