@@ -193,6 +193,7 @@ namespace xt
     inline xio_disk_config xzarr_file_system_store::get_io_config()
     {
         xio_disk_config c;
+        c.create_directories = true;
         return c;
     }
 
