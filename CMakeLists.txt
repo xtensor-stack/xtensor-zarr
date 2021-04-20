@@ -11,12 +11,17 @@ cmake_minimum_required(VERSION 3.8)
 project(xtensor-zarr)
 
 set(XTENSOR_ZARR_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
-set(XTENSOR_ZARR_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(XTENSOR_ZARR_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Versionning
 # ===========
 
-file(STRINGS "${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config.hpp" xtensor_zarr_version_defines
+# Project version
+file(STRINGS "${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor-zarr.hpp" xtensor_zarr_version_defines
      REGEX "#define XTENSOR_ZARR_VERSION_(MAJOR|MINOR|PATCH)")
 foreach(ver ${xtensor_zarr_version_defines})
     if(ver MATCHES "#define XTENSOR_ZARR_VERSION_(MAJOR|MINOR|PATCH) +([^ ]+)$")
@@ -25,7 +30,34 @@ foreach(ver ${xtensor_zarr_version_defines})
 endforeach()
 set(${PROJECT_NAME}_VERSION
     ${XTENSOR_ZARR_VERSION_MAJOR}.${XTENSOR_ZARR_VERSION_MINOR}.${XTENSOR_ZARR_VERSION_PATCH})
-message(STATUS "Building xtensor-zarr v${${PROJECT_NAME}_VERSION}")
+message(STATUS "xtensor-zarr version: v${XTENSOR_ZARR_VERSION}")
+
+# Binary version
+# See the following URL for explanations about the binary versionning
+# https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html#Updating-version-info
+file(STRINGS "${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor-zarr.hpp" xtensor_zarr_version_defines
+    REGEX "#define XTENSOR_ZARR_BINARY_(CURRENT|REVISION|AGE)")
+foreach(ver ${xtensor_zarr_version_defines})
+    if(ver MATCHES "#define XTENSOR_ZARR_BINARY_(CURRENT|REVISION|AGE) +([^ ]+)$")
+        set(XTENSOR_ZARR_BINARY_${CMAKE_MATCH_1} "${CMAKE_MATCH_2}" CACHE INTERNAL "")
+    endif()
+endforeach()
+set(XTENSOR_ZARR_BINARY_VERSION
+    ${XTENSOR_ZARR_BINARY_CURRENT}.${XTENSOR_ZARR_BINARY_REVISION}.${XTENSOR_ZARR_BINARY_AGE})
+message(STATUS "xtensor-zarr binary version: v${XTENSOR_ZARR_BINARY_VERSION}")
+
+# Build options
+# =============
+
+# Compilation options
+option(XTENSOR_ZARR_DISABLE_ARCH_NATIVE "disable -march=native flag" OFF)
+option(XTENSOR_ZARR_BUILD_SHARED_LIBS "Build xtensor-zarr shared library." ON)
+option(XTENSOR_ZARR_BUILD_STATIC_LIBS "Build xtensor-zarr static library (default if BUILD_SHARED_LIBS is OFF)." ON)
+
+# Test options
+option(BUILD_TESTS "xtensor-zarr test suite" OFF)
+option(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
+option(DOWNLOAD_GBENCHMARK "download google benchmark and build from source" ON)
 
 # Dependencies
 # ============
@@ -65,18 +97,13 @@ set(XTENSOR_ZARR_HEADERS
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_common.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_compressor.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_chunked_array.hpp
-    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config.hpp
 )
 
-OPTION(BUILD_TESTS "xtensor-zarr test suite" OFF)
-OPTION(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
-OPTION(DOWNLOAD_GBENCHMARK "download google benchmark and build from source" ON)
-
-add_library(xtensor-zarr SHARED
-    ${XTENSOR_ZARR_SRC_DIR}/shared.cpp
+add_library(xtensor-zarr-gdal SHARED
+    ${XTENSOR_ZARR_SOURCE_DIR}/xtensor-zarr-gdal.cpp
 )
 
-add_library(libxtensor-zarr INTERFACE)
+add_library(xtensor-zarr INTERFACE)
 target_link_libraries(xtensor-zarr INTERFACE xtensor-io zarray)
 
 target_include_directories(xtensor-zarr
@@ -85,7 +112,7 @@ target_include_directories(xtensor-zarr
     $<INSTALL_INTERFACE:include>
 )
 
-target_include_directories(xtensor-zarr
+target_include_directories(xtensor-zarr-gdal
     PUBLIC
     $<BUILD_INTERFACE:${XTENSOR_ZARR_INCLUDE_DIR}>
     $<INSTALL_INTERFACE:include>
@@ -102,6 +129,10 @@ if(${GDAL_FOUND})
     )
     target_link_libraries(xtensor-zarr
         INTERFACE
+        ${GDAL_LIBRARIES}
+    )
+    target_link_libraries(xtensor-zarr-gdal
+        PRIVATE
         ${GDAL_LIBRARIES}
     )
 else()
@@ -178,7 +209,9 @@ endif()
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-install(TARGETS xtensor-zarr
+set(XTENSOR_ZARR_GDAL_INSTALL_LIBRARY_DIR "\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}\"")
+
+install(TARGETS xtensor-zarr-gdal
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
