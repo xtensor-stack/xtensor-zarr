@@ -6,18 +6,19 @@ steps:
   - script: |
       conda config --set always_yes yes --set changeps1 no
       conda update -q conda
-      conda env create --file environment-dev.yml
+      conda install mamba -c conda-forge
+      mamba env create --file environment-dev.yml
     displayName: Install dependencies
 
   - script: |
       source activate xtensor-zarr
-      conda install gxx_linux-64 libgcc -c conda-forge
+      mamba install gxx_linux-64 libgcc -c conda-forge
     condition: eq('${{ parameters.platform }}', 'Linux')
     displayName: Install conda-forge compilers
 
   - script: |
       source activate xtensor-zarr
-      conda install tbb==2020.2 -c conda-forge
+      mamba install tbb==2020.2 -c conda-forge
     displayName: Workaround missing TBB
 
   - script: |
