@@ -11,6 +11,7 @@ cmake_minimum_required(VERSION 3.8)
 project(xtensor-zarr)
 
 set(XTENSOR_ZARR_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(XTENSOR_ZARR_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 # Versionning
 # ===========
@@ -71,11 +72,21 @@ OPTION(BUILD_TESTS "xtensor-zarr test suite" OFF)
 OPTION(DOWNLOAD_GTEST "build gtest from downloaded sources" OFF)
 OPTION(DOWNLOAD_GBENCHMARK "download google benchmark and build from source" ON)
 
-add_library(xtensor-zarr INTERFACE)
+add_library(xtensor-zarr SHARED
+    ${XTENSOR_ZARR_SRC_DIR}/shared.cpp
+)
+
+add_library(libxtensor-zarr INTERFACE)
 target_link_libraries(xtensor-zarr INTERFACE xtensor-io zarray)
 
 target_include_directories(xtensor-zarr
     INTERFACE
+    $<BUILD_INTERFACE:${XTENSOR_ZARR_INCLUDE_DIR}>
+    $<INSTALL_INTERFACE:include>
+)
+
+target_include_directories(xtensor-zarr
+    PUBLIC
     $<BUILD_INTERFACE:${XTENSOR_ZARR_INCLUDE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
@@ -166,6 +177,10 @@ endif()
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+
+install(TARGETS xtensor-zarr
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 install(TARGETS xtensor-zarr
         EXPORT ${PROJECT_NAME}-targets)
