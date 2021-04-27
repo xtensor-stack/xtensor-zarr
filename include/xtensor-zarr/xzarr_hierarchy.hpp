@@ -17,6 +17,8 @@
 #include "xzarr_group.hpp"
 #include "xzarr_common.hpp"
 #include "xzarr_file_system_store.hpp"
+#include "xzarr_gdal_store.hpp"
+#include "xtensor_zarr_config.hpp"
 
 namespace xt
 {
@@ -218,6 +220,11 @@ namespace xt
         return get_zarr_hierarchy(local_store_path.c_str(), zarr_version);
     }
 
+    /*********************
+     * precompiled types *
+     *********************/
+
+    extern template class xzarr_hierarchy<xzarr_gdal_store>;
 }
 
 #endif

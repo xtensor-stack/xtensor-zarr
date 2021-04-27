@@ -23,10 +23,10 @@ steps:
 
   - script: |
       source activate xtensor-zarr
-      export LDFLAGS="${LDFLAGS} -Wl,-rpath,$CONDA_PREFIX/lib"
-      export LINKFLAGS="${LDFLAGS}"
       mkdir build
       cd build
+      export LDFLAGS="${LDFLAGS} -Wl,-rpath,$CONDA_PREFIX/lib -Wl,-rpath,$PWD"
+      export LINKFLAGS="${LDFLAGS}"
       cmake -DCMAKE_PREFIX_PATH=$CONDA_PREFIX -DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX -DDOWNLOAD_GTEST=ON -DCMAKE_INSTALL_LIBDIR=lib -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX $(Build.SourcesDirectory)
     displayName: Configure xtensor-zarr
     workingDirectory: $(Build.BinariesDirectory)
