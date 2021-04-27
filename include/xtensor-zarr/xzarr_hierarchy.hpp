@@ -18,7 +18,7 @@
 #include "xzarr_common.hpp"
 #include "xzarr_file_system_store.hpp"
 #include "xzarr_gdal_store.hpp"
-#include "xtensor-zarr.hpp"
+#include "xtensor_zarr_config.hpp"
 
 namespace xt
 {

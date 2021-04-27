@@ -7,8 +7,8 @@
 * The full license is in the file LICENSE, distributed with this software. *
 ****************************************************************************/
 
-#ifndef XTENSOR_ZARR_EXPORT_HPP
-#define XTENSOR_ZARR_EXPORT_HPP
+#ifndef XTENSOR_ZARR_CONFIG_HPP
+#define XTENSOR_ZARR_CONFIG_HPP
 
 #ifdef _WIN32
     #ifdef XTENSOR_ZARR_STATIC_LIB

@@ -21,7 +21,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # ===========
 
 # Project version
-file(STRINGS "${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor-zarr.hpp" xtensor_zarr_version_defines
+file(STRINGS "${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config.hpp" xtensor_zarr_version_defines
      REGEX "#define XTENSOR_ZARR_VERSION_(MAJOR|MINOR|PATCH)")
 foreach(ver ${xtensor_zarr_version_defines})
     if(ver MATCHES "#define XTENSOR_ZARR_VERSION_(MAJOR|MINOR|PATCH) +([^ ]+)$")
@@ -35,7 +35,7 @@ message(STATUS "xtensor-zarr version: v${XTENSOR_ZARR_VERSION}")
 # Binary version
 # See the following URL for explanations about the binary versionning
 # https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html#Updating-version-info
-file(STRINGS "${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor-zarr.hpp" xtensor_zarr_version_defines
+file(STRINGS "${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config.hpp" xtensor_zarr_version_defines
     REGEX "#define XTENSOR_ZARR_BINARY_(CURRENT|REVISION|AGE)")
 foreach(ver ${xtensor_zarr_version_defines})
     if(ver MATCHES "#define XTENSOR_ZARR_BINARY_(CURRENT|REVISION|AGE) +([^ ]+)$")
@@ -85,7 +85,7 @@ find_dependency(xtl REQUIRED)
 # =====
 
 set(XTENSOR_ZARR_HEADERS
-    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor-zarr.hpp
+    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_hierarchy.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_node.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_group.hpp
