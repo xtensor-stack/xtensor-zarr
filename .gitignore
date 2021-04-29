@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+# Generated header
+include/xtensor-zarr/xtensor_zarr_config_cling.hpp

@@ -64,17 +64,23 @@ option(DOWNLOAD_GBENCHMARK "download google benchmark and build from source" ON)
 
 set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" "${CMAKE_SOURCE_DIR}/cmake")
 
+set(xtensor_REQUIRED_VERSION "0.23.8")
+find_package(xtensor ${xtensor_REQUIRED_VERSION} REQUIRED)
+
+set(xtensor_io_REQUIRED_VERSION "0.12.7")
+find_package(xtensor-io ${xtensor_io_REQUIRED_VERSION} REQUIRED)
+
+set(zarray_REQUIRED_VERSION "0.1.0")
+find_package(zarray ${zarray_REQUIRED_VERSION} REQUIRED)
+
 set(nlohmann_json_REQUIRED_VERSION "3.2.0" )
 find_package(nlohmann_json ${nlohmann_json_REQUIRED_VERSION} REQUIRED)
 
-set(xtensor_REQUIRED_VERSION "0.23.7")
-find_package(xtensor-io ${xtensor_io_REQUIRED_VERSION} REQUIRED)
+set(GDAL_REQUIRED_VERSION "3.0.0")
+find_package(GDAL ${GDAL_REQUIRED_VERSION} REQUIRED)
 
-set(xtensor_io_REQUIRED_VERSION "0.12.6")
-find_package(xtensor-io ${xtensor_io_REQUIRED_VERSION} REQUIRED)
-
-set(zarray_REQUIRED_VERSION "0.0.6")
-find_package(zarray ${zarray_REQUIRED_VERSION} REQUIRED)
+set(Blosc_REQUIRED_VERSION "1.21.0")
+find_package(Blosc ${Blosc_REQUIRED_VERSION} REQUIRED)
 
 #Remove the following lines when xtensor-io is fixed
 include(CMakeFindDependencyMacro)
@@ -85,7 +91,6 @@ find_dependency(xtl REQUIRED)
 # =====
 
 set(XTENSOR_ZARR_HEADERS
-    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_hierarchy.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_node.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_group.hpp
@@ -97,6 +102,8 @@ set(XTENSOR_ZARR_HEADERS
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_common.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_compressor.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_chunked_array.hpp
+    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config.hpp
+    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config_cling.hpp
 )
 
 add_library(xtensor-zarr-gdal SHARED
@@ -118,43 +125,68 @@ target_include_directories(xtensor-zarr-gdal
     $<INSTALL_INTERFACE:include>
 )
 
-message(STATUS "Trying to find GDAL for Virtual File System support")
-find_package(GDAL)
-if(${GDAL_FOUND})
-    message(STATUS "GDAL ${GDAL_VERSION} found, Virtual File System support enabled")
-    include_directories(${Blosc_INCLUDE_DIRS})
-    target_include_directories(xtensor-zarr
-        INTERFACE
-        $<BUILD_INTERFACE:${GDAL_INCLUDE_DIRS}>
-    )
-    target_link_libraries(xtensor-zarr
-        INTERFACE
-        ${GDAL_LIBRARIES}
-    )
-    target_link_libraries(xtensor-zarr-gdal
-        PRIVATE
-        ${GDAL_LIBRARIES}
-    )
-else()
-    message(WARNING "GDAL not found - install GDAL for Virtual File System support")
-endif()
+include_directories(${nlohmann_json_INCLUDE_DIRS})
+target_include_directories(xtensor-zarr
+    INTERFACE
+    $<BUILD_INTERFACE:${NLOHMANN_JSON_INCLUDE_DIRS}>
+)
+target_link_libraries(xtensor-zarr
+    INTERFACE
+    ${NLOHMANN_JSON_LIBRARIES}
+)
 
-message(STATUS "Trying to find Blosc for Blosc file support")
-find_package(Blosc)
-if (${Blosc_FOUND})
-    message(STATUS "Blosc found, Blosc file support enabled")
-    include_directories(${Blosc_INCLUDE_DIRS})
-    target_include_directories(xtensor-zarr
-        INTERFACE
-        $<BUILD_INTERFACE:${Blosc_INCLUDE_DIRS}>
-    )
-    target_link_libraries(xtensor-zarr
-        INTERFACE
-        ${Blosc_LIBRARIES}
-    )
-else()
-    message(WARNING "Blosc not found - install blosc for Blosc file support")
-endif()
+include_directories(${cpp_filesystem_INCLUDE_DIRS})
+target_include_directories(xtensor-zarr
+    INTERFACE
+    $<BUILD_INTERFACE:${CPP_FILESYSTEM_INCLUDE_DIRS}>
+)
+target_link_libraries(xtensor-zarr
+    INTERFACE
+    ${CPP_FILESYSTEM_LIBRARIES}
+)
+
+include_directories(${gdal_INCLUDE_DIRS})
+target_include_directories(xtensor-zarr
+    INTERFACE
+    $<BUILD_INTERFACE:${GDAL_INCLUDE_DIRS}>
+)
+target_link_libraries(xtensor-zarr
+    INTERFACE
+    ${GDAL_LIBRARIES}
+)
+target_link_libraries(xtensor-zarr-gdal
+    PRIVATE
+    ${GDAL_LIBRARIES}
+)
+
+include_directories(${Blosc_INCLUDE_DIRS})
+target_include_directories(xtensor-zarr
+    INTERFACE
+    $<BUILD_INTERFACE:${Blosc_INCLUDE_DIRS}>
+)
+target_link_libraries(xtensor-zarr
+    INTERFACE
+    ${Blosc_LIBRARIES}
+)
+target_link_libraries(xtensor-zarr-gdal
+    PRIVATE
+    ${Blosc_LIBRARIES}
+)
+
+find_package(ZLIB)
+include_directories(${zlib_INCLUDE_DIRS})
+target_include_directories(xtensor-zarr
+    INTERFACE
+    $<BUILD_INTERFACE:${zlib_INCLUDE_DIRS}>
+)
+target_link_libraries(xtensor-zarr
+    INTERFACE
+    ${zlib_LIBRARIES}
+)
+target_link_libraries(xtensor-zarr-gdal
+    PRIVATE
+    ZLIB::ZLIB
+)
 
 find_package(storage_client)
 message(STATUS "Trying to find Google Cloud Storage for GCS IO handler support")
@@ -209,7 +241,12 @@ endif()
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
-set(XTENSOR_ZARR_GDAL_INSTALL_LIBRARY_DIR "\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}\"")
+set(XTENSOR_ZARR_INSTALL_LIBRARY_DIR "\"${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}\"")
+
+configure_file (
+    "${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config_cling.hpp.in"
+    "${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config_cling.hpp"
+)
 
 install(TARGETS xtensor-zarr-gdal
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

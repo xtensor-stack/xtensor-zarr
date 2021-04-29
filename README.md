@@ -5,32 +5,26 @@
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/xtensor-stack/xtensor-zarr/master?urlpath=lab%2Ftree%2Fexamples)
 [![Join the Gitter Chat](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/QuantStack/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Implementation of the Zarr version 3.0 core protocol based on xtensor
+Implementation of the Zarr core protocol (version 2 and 3) based on xtensor
 
 ## Introduction
 
-**xtensor-zarr is an early developer preview, and is not suitable for general usage yet. Features and implementation are subject to change.**
-
-`xtensor-zarr` offers an API to create and access a Zarr (v3) hierarchy in a store (locally or in the cloud), read and write arrays (in various formats) and groups in the hierarchy, and explore the hierarchy.
+`xtensor-zarr` offers an API to create and access a Zarr (v2 or v3) hierarchy in a store (locally or in the cloud), read and write arrays (in various formats) and groups in the hierarchy, and explore the hierarchy.
 
 ## Installation
 
-`xtensor-zarr` is a header-only library. We provide a package for the mamba (or conda) package manager.
+`xtensor-zarr` comes with a `libxtensor-zarr-gdal` shared library for accessing stores through a GDAL Virtual File System, but is otherwise a header-only library. We provide a package for the mamba (or conda) package manager.
 
 ```bash
 mamba install xtensor-zarr -c conda-forge
 ```
 
-- `xtensor-zarr` depends on `xtensor` `^0.23.4`, `xtensor-io` `^0.12.4`, `zarray` `^0.0.5` and `nlohmann_json`.
+- `xtensor-zarr` depends on `xtensor` `^0.23.8`, `xtensor-io` `^0.12.7`, `zarray` `^0.0.7`, `nlohmann_json` `^3.2.0`, `cpp-filesystem` `^1.5.0`, `gdal` `^3.2.0`, `Blosc` `^1.21.0` and `zlib` `^1.2.0`.
 
-- `google-cloud-cpp`, `aws-sdk-cpp`, `cpp-filesystem`, `zlib`, `blosc` and `gdal` are optional dependencies to `xtensor-zarr`.
+- `google-cloud-cpp` and `aws-sdk-cpp` are optional dependencies to `xtensor-zarr`.
 
   - `google-cloud-cpp` is required to access a store in Google Cloud Storage.
   - `aws-sdk-cpp` is required to access a store in AWS S3.
-  - `cpp-filesystem` is required to access a store on the local file system.
-  - `zlib` is required for the GZip compressor.
-  - `blosc` is required for the Blosc compressor.
-  - `gdal` is required to access a store through its Virtual File System.
 
 You can also install `xtensor-zarr` from source:
 
