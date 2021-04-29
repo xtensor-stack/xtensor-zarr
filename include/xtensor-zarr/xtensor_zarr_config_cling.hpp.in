@@ -14,5 +14,6 @@
 #pragma cling load("libxtensor-zarr-gdal")
 #pragma cling load("libgdal")
 #pragma cling load("libblosc")
+#pragma cling load("libz")
 
 #endif

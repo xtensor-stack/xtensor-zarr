@@ -18,6 +18,7 @@ dependencies:
   - google-cloud-cpp=1.20.0
   - zlib
   - blosc
+  - gdal
   - allthekernels
   - fsspec
   - numcodecs
