@@ -109,10 +109,6 @@ set(XTENSOR_ZARR_HEADERS
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config_cling.hpp
 )
 
-set(XTENSOR_ZARR_LOCAL_SOURCE
-    ${XTENSOR_ZARR_SOURCE_DIR}/xtensor-zarr-local.cpp
-)
-
 set(XTENSOR_ZARR_GDAL_SOURCE
     ${XTENSOR_ZARR_SOURCE_DIR}/xtensor-zarr-gdal.cpp
 )
@@ -305,9 +301,7 @@ endmacro()
 
 set (xtensor_zarr_targets "")
 if (XTENSOR_ZARR_BUILD_SHARED_LIBS)
-    xtensor_zarr_create_target(${XTENSOR_ZARR_LOCAL_SOURCE} xtensor-zarr-local SHARED xtensor-zarr-local)
     xtensor_zarr_create_target(${XTENSOR_ZARR_GDAL_SOURCE} xtensor-zarr-gdal SHARED xtensor-zarr-gdal)
-    list(APPEND xtensor_zarr_targets xtensor-zarr-local)
     list(APPEND xtensor_zarr_targets xtensor-zarr-gdal)
 
     target_link_libraries(xtensor-zarr-gdal
