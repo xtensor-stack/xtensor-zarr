@@ -12,6 +12,7 @@ cmake_minimum_required(VERSION 3.8)
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
     project(xtensor-zarr-test)
 
+    find_package(xtensor-zarr-local REQUIRED CONFIG)
     find_package(xtensor-zarr-gdal REQUIRED CONFIG)
     find_package(xtensor-zarr REQUIRED CONFIG)
     set(XTENSOR_ZARR_INCLUDE_DIR ${xtensor_INCLUDE_DIRS})
@@ -100,7 +101,9 @@ endif()
 target_compile_features(test_xtensor_zarr PRIVATE cxx_std_14)
 
 target_link_libraries(test_xtensor_zarr
-    PRIVATE xtensor-zarr-gdal
+    PRIVATE
+    xtensor-zarr-local
+    xtensor-zarr-gdal
     PUBLIC
     xtensor-zarr
     ${CMAKE_DL_LIBS}
