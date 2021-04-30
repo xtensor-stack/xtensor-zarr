@@ -73,7 +73,7 @@ find_package(xtensor-io ${xtensor_io_REQUIRED_VERSION} REQUIRED)
 set(zarray_REQUIRED_VERSION "0.1.0")
 find_package(zarray ${zarray_REQUIRED_VERSION} REQUIRED)
 
-set(nlohmann_json_REQUIRED_VERSION "3.2.0" )
+set(nlohmann_json_REQUIRED_VERSION "3.9.1" )
 find_package(nlohmann_json ${nlohmann_json_REQUIRED_VERSION} REQUIRED)
 
 set(GDAL_REQUIRED_VERSION "3.0.0")
@@ -81,6 +81,9 @@ find_package(GDAL ${GDAL_REQUIRED_VERSION} REQUIRED)
 
 set(Blosc_REQUIRED_VERSION "1.21.0")
 find_package(Blosc ${Blosc_REQUIRED_VERSION} REQUIRED)
+
+set(ZLIB_REQUIRED_VERSION "1.2.11")
+find_package(ZLIB ${ZLIB_REQUIRED_VERSION} REQUIRED)
 
 #Remove the following lines when xtensor-io is fixed
 include(CMakeFindDependencyMacro)
@@ -106,7 +109,11 @@ set(XTENSOR_ZARR_HEADERS
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config_cling.hpp
 )
 
-add_library(xtensor-zarr-gdal SHARED
+set(XTENSOR_ZARR_LOCAL_SOURCE
+    ${XTENSOR_ZARR_SOURCE_DIR}/xtensor-zarr-local.cpp
+)
+
+set(XTENSOR_ZARR_GDAL_SOURCE
     ${XTENSOR_ZARR_SOURCE_DIR}/xtensor-zarr-gdal.cpp
 )
 
@@ -119,13 +126,6 @@ target_include_directories(xtensor-zarr
     $<INSTALL_INTERFACE:include>
 )
 
-target_include_directories(xtensor-zarr-gdal
-    PUBLIC
-    $<BUILD_INTERFACE:${XTENSOR_ZARR_INCLUDE_DIR}>
-    $<INSTALL_INTERFACE:include>
-)
-
-include_directories(${nlohmann_json_INCLUDE_DIRS})
 target_include_directories(xtensor-zarr
     INTERFACE
     $<BUILD_INTERFACE:${NLOHMANN_JSON_INCLUDE_DIRS}>
@@ -135,7 +135,6 @@ target_link_libraries(xtensor-zarr
     ${NLOHMANN_JSON_LIBRARIES}
 )
 
-include_directories(${cpp_filesystem_INCLUDE_DIRS})
 target_include_directories(xtensor-zarr
     INTERFACE
     $<BUILD_INTERFACE:${CPP_FILESYSTEM_INCLUDE_DIRS}>
@@ -145,7 +144,6 @@ target_link_libraries(xtensor-zarr
     ${CPP_FILESYSTEM_LIBRARIES}
 )
 
-include_directories(${gdal_INCLUDE_DIRS})
 target_include_directories(xtensor-zarr
     INTERFACE
     $<BUILD_INTERFACE:${GDAL_INCLUDE_DIRS}>
@@ -154,12 +152,7 @@ target_link_libraries(xtensor-zarr
     INTERFACE
     ${GDAL_LIBRARIES}
 )
-target_link_libraries(xtensor-zarr-gdal
-    PRIVATE
-    ${GDAL_LIBRARIES}
-)
 
-include_directories(${Blosc_INCLUDE_DIRS})
 target_include_directories(xtensor-zarr
     INTERFACE
     $<BUILD_INTERFACE:${Blosc_INCLUDE_DIRS}>
@@ -168,13 +161,7 @@ target_link_libraries(xtensor-zarr
     INTERFACE
     ${Blosc_LIBRARIES}
 )
-target_link_libraries(xtensor-zarr-gdal
-    PRIVATE
-    ${Blosc_LIBRARIES}
-)
 
-find_package(ZLIB)
-include_directories(${zlib_INCLUDE_DIRS})
 target_include_directories(xtensor-zarr
     INTERFACE
     $<BUILD_INTERFACE:${zlib_INCLUDE_DIRS}>
@@ -182,10 +169,6 @@ target_include_directories(xtensor-zarr
 target_link_libraries(xtensor-zarr
     INTERFACE
     ${zlib_LIBRARIES}
-)
-target_link_libraries(xtensor-zarr-gdal
-    PRIVATE
-    ZLIB::ZLIB
 )
 
 find_package(storage_client)
@@ -235,6 +218,104 @@ if(BUILD_TESTS)
     add_subdirectory(test)
 endif()
 
+macro(xtensor_zarr_create_target source target_name linkage output_name)
+    string(TOUPPER "${linkage}" linkage_upper)
+
+    if (NOT ${linkage_upper} MATCHES "^(SHARED|STATIC)$")
+        message(FATAL_ERROR "Invalid library linkage: ${linkage}")
+    endif ()
+
+    # Output
+    # ======
+
+    add_library(${target_name} ${linkage_upper} ${source} ${XTENSOR_ZARR_HEADERS})
+
+    if (APPLE)
+        set_target_properties(
+            ${target_name} PROPERTIES
+            MACOSX_RPATH ON
+        )
+    else ()
+        set_target_properties(
+            ${target_name} PROPERTIES
+            BUILD_WITH_INSTALL_RPATH 1
+        )
+    endif ()
+
+    target_include_directories(
+        ${target_name}
+        PUBLIC $<BUILD_INTERFACE:${XTENSOR_ZARR_INCLUDE_DIR}>
+        $<INSTALL_INTERFACE:include>
+    )
+
+    target_link_libraries(
+        ${target_name}
+        PUBLIC nlohmann_json::nlohmann_json
+        PUBLIC xtl
+    )
+
+    set_target_properties(
+        ${target_name}
+        PROPERTIES
+        PUBLIC_HEADER "${XTENSOR_ZARR_HEADERS}"
+        COMPILE_DEFINITIONS "XTENSOR_ZARR_EXPORTS"
+        PREFIX ""
+        VERSION ${XTENSOR_ZARR_BINARY_VERSION}
+        SOVERSION ${XTENSOR_ZARR_BINARY_CURRENT}
+        OUTPUT_NAME "lib${output_name}"
+    )
+
+    # Compilation flags
+    # =================
+
+    target_compile_features(${target_name} PRIVATE cxx_std_14)
+
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR
+        CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR
+        CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+
+        target_compile_options(${target_name} PUBLIC -Wunused-parameter -Wextra -Wreorder)
+
+        if (NOT XTENSOR_ZARR_DISABLE_ARCH_NATIVE)
+            target_compile_options(${target_name} PUBLIC -march=native)
+        endif ()
+
+        message(STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
+    endif()
+
+    if (${linkage_upper} STREQUAL "STATIC")
+        target_compile_definitions(${target_name} PUBLIC XTENSOR_ZARR_STATIC_LIB)
+    endif ()
+
+    if (XTENSOR_ZARR_STATIC_DEPENDENCIES AND CMAKE_DL_LIBS)
+        target_link_libraries(${target_name} PRIVATE ${CMAKE_DL_LIBS} util rt)
+    endif ()
+
+    target_link_libraries(${target_name}
+        PRIVATE
+        ${Blosc_LIBRARIES}
+    )
+
+    target_link_libraries(${target_name}
+        PRIVATE
+        ZLIB::ZLIB
+    )
+
+endmacro()
+
+set (xtensor_zarr_targets "")
+if (XTENSOR_ZARR_BUILD_SHARED_LIBS)
+    xtensor_zarr_create_target(${XTENSOR_ZARR_LOCAL_SOURCE} xtensor-zarr-local SHARED xtensor-zarr-local)
+    xtensor_zarr_create_target(${XTENSOR_ZARR_GDAL_SOURCE} xtensor-zarr-gdal SHARED xtensor-zarr-gdal)
+    list(APPEND xtensor_zarr_targets xtensor-zarr-local)
+    list(APPEND xtensor_zarr_targets xtensor-zarr-gdal)
+
+    target_link_libraries(xtensor-zarr-gdal
+        PRIVATE
+        ${GDAL_LIBRARIES}
+    )
+endif ()
+
 # Installation
 # ============
 
@@ -248,18 +329,19 @@ configure_file (
     "${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config_cling.hpp"
 )
 
-install(TARGETS xtensor-zarr-gdal
+install(TARGETS ${xtensor_zarr_targets}
+    EXPORT ${PROJECT_NAME}-targets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/xtensor-zarr)
 
 install(TARGETS xtensor-zarr
-        EXPORT ${PROJECT_NAME}-targets)
+    EXPORT ${PROJECT_NAME}-targets)
 
+# Makes the project importable from the build directory
 export(EXPORT ${PROJECT_NAME}-targets
-       FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
-
-install(FILES ${XTENSOR_ZARR_HEADERS}
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/xtensor-zarr)
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
 set(XTENSOR_ZARR_CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}" CACHE
     STRING "install path for xtensor-zarrConfig.cmake")

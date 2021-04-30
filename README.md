@@ -13,16 +13,25 @@ Implementation of the Zarr core protocol (version 2 and 3) based on xtensor
 
 ## Installation
 
-`xtensor-zarr` comes with a `libxtensor-zarr-gdal` shared library for accessing stores through a GDAL Virtual File System, but is otherwise a header-only library. We provide a package for the mamba (or conda) package manager.
+`xtensor-zarr` comes with:
+
+- `libxtensor-zarr-gdal`: a shared library for accessing stores through a GDAL Virtual File System.
+- `libxtensor-zarr-local`: a shared library for accessing stores through the local file system.
+
+Appart from these stores, `xtensor-zarr` is a header-only library.
+
+We provide a package for the mamba (or conda) package manager:
 
 ```bash
 mamba install xtensor-zarr -c conda-forge
 ```
 
-- `xtensor-zarr` depends on `xtensor` `^0.23.8`, `xtensor-io` `^0.12.7`, `zarray` `^0.0.7`, `nlohmann_json` `^3.2.0`, `cpp-filesystem` `^1.5.0`, `gdal` `^3.2.0`, `Blosc` `^1.21.0` and `zlib` `^1.2.0`.
+- `xtensor-zarr` depends on `xtensor` `^0.23.8`, `xtensor-io` `^0.12.7`, `zarray` `^0.0.7`, `nlohmann_json` `^3.9.1`, `Blosc` `^1.21.0` and `zlib` `^1.2.11`.
 
-- `google-cloud-cpp` and `aws-sdk-cpp` are optional dependencies to `xtensor-zarr`.
+- `gdal` `^3.0.0`, `cpp-filesystem` `^1.3.0`, `google-cloud-cpp` and `aws-sdk-cpp` are optional dependencies to `xtensor-zarr`.
 
+  - `gdal` is required to access a store using GDAL's Virtual File System.
+  - `cpp-filesystem` is required to access a store in the local file system.
   - `google-cloud-cpp` is required to access a store in Google Cloud Storage.
   - `aws-sdk-cpp` is required to access a store in AWS S3.
 
