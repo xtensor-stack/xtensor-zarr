@@ -9,7 +9,6 @@
 #ifndef XTENSOR_ZARR_CONFIG_CLING_HPP
 #define XTENSOR_ZARR_CONFIG_CLING_HPP
 
-#pragma cling add_include_path("@XTENSOR_ZARR_INCLUDE_DIR@")
 #pragma cling add_library_path(@XTENSOR_ZARR_INSTALL_LIBRARY_DIR@)
 #pragma cling load("libxtensor-zarr-gdal")
 #pragma cling load("libgdal")
