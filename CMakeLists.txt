@@ -304,6 +304,11 @@ if (XTENSOR_ZARR_BUILD_SHARED_LIBS)
     xtensor_zarr_create_target(${XTENSOR_ZARR_GDAL_SOURCE} xtensor-zarr-gdal SHARED xtensor-zarr-gdal)
     list(APPEND xtensor_zarr_targets xtensor-zarr-gdal)
 
+    target_include_directories(xtensor-zarr-gdal
+      PRIVATE
+      ${GDAL_INCLUDE_DIRS}
+    )
+
     target_link_libraries(xtensor-zarr-gdal
         PRIVATE
         ${GDAL_LIBRARIES}
