@@ -248,6 +248,7 @@ macro(xtensor_zarr_create_target source target_name linkage output_name)
         ${target_name}
         PUBLIC nlohmann_json::nlohmann_json
         PUBLIC xtl
+        PUBLIC xtensor-zarr
     )
 
     set_target_properties(
