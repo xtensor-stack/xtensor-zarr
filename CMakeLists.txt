@@ -262,6 +262,11 @@ macro(xtensor_zarr_create_target source target_name linkage output_name)
         OUTPUT_NAME "lib${output_name}"
     )
 
+    if (MSVC) # the object files can get big, so we need to "Increase Number of Sections in .Obj file"
+        # target_compile_definitions(${target_name} PUBLIC COMPILE_DEFINITIONS -Dbigobj) # doesn't work
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+    endif()
+
     # Compilation flags
     # =================
 
