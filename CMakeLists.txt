@@ -248,6 +248,7 @@ macro(xtensor_zarr_create_target source target_name linkage output_name)
         ${target_name}
         PUBLIC nlohmann_json::nlohmann_json
         PUBLIC xtl
+        PUBLIC xtensor-zarr
     )
 
     set_target_properties(
@@ -260,6 +261,11 @@ macro(xtensor_zarr_create_target source target_name linkage output_name)
         SOVERSION ${XTENSOR_ZARR_BINARY_CURRENT}
         OUTPUT_NAME "lib${output_name}"
     )
+
+    if (MSVC) # the object files can get big, so we need to "Increase Number of Sections in .Obj file"
+        # target_compile_definitions(${target_name} PUBLIC COMPILE_DEFINITIONS -Dbigobj) # doesn't work
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+    endif()
 
     # Compilation flags
     # =================

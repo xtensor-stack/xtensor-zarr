@@ -124,7 +124,7 @@ namespace xt
             {
                 if (!fs::is_directory(directory))
                 {
-                    XTENSOR_THROW(std::runtime_error, "Path is not a directory: " + std::string(directory));
+                    XTENSOR_THROW(std::runtime_error, "Path is not a directory: " + std::string(directory.string()));
                 }
             }
             else
@@ -209,7 +209,7 @@ namespace xt
         std::string path = m_root + '/' + prefix;
         for (const auto& entry: fs::directory_iterator(path))
         {
-            std::string p = entry.path();
+            std::string p = entry.path().string();
             if (fs::is_directory(p))
             {
                 prefixes.push_back(p.substr(m_root.size() + 1));
@@ -244,7 +244,7 @@ namespace xt
         std::vector<std::string> keys;
         for (const auto& entry: fs::recursive_directory_iterator(path))
         {
-            std::string p = entry.path();
+            std::string p = entry.path().string();
             keys.push_back(p.substr(m_root.size() + 1));
         }
         return keys;
