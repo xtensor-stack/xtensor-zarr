@@ -21,10 +21,6 @@ find_dependency(xtensor-io @xtensor_io_REQUIRED_VERSION@)
 find_dependency(zarray @zarray_REQUIRED_VERSION@)
 find_dependency(nlohmann_json @nlohmann_json_REQUIRED_VERSION@)
 
-set(PN xtensor_zarr)
-set_and_check(${PN}_INCLUDE_DIRS "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_INCLUDEDIR@")
-set(${PN}_LIBRARY "")
-check_required_components(${PN})
 
 if(NOT TARGET @PROJECT_NAME@)
   include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@Targets.cmake")
