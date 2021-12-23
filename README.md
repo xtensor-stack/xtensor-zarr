@@ -13,7 +13,7 @@ Implementation of the Zarr core protocol (version 2 and 3) based on xtensor
 
 ## Installation
 
-`xtensor-zarr` comes with a `libxtensor-zarr-gdal` shared library for accessing stores through GDAL's Virtual File System or the local file system. For all other stores, `xtensor-zarr` is a header-only library.
+`xtensor-zarr` comes with a `libxtensor-zarr-gdal` shared library for accessing stores through GDAL's Virtual File System or the local file system. For all other stores, `xtensor-zarr` is a header-only library. If you do not link your project against `xtensor-zarr-gdal` target, you should add code from [xtensor-zarr-gdal.cpp](https://github.com/xtensor-stack/xtensor-zarr/blob/90f0acfbf74a4e3664b0861920409b6143600d67/src/xtensor-zarr-gdal.cpp#L3-L8) somewhere in your project to avoid linking errors.
 
 We provide a package for the mamba (or conda) package manager:
 
