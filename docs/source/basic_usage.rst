@@ -54,22 +54,25 @@ Create an array
         auto h = xt::get_zarr_hierarchy(store);
         // create an array in the hierarchy
         nlohmann::json attrs = {{"question", "life"}, {"answer", 42}};
-        using S = std::vector<std::size_t>;
-        S shape = {4, 4};
-        S chunk_shape = {2, 2};
-        xt::zarray a = h.create_array(
+        std::vector<size_t> shape = {4, 4};
+        std::vector<size_t> chunk_shape = {2, 2};
+        // specify options
+        xt::xzarr_create_array_options<xt::xio_gzip_config> o;
+        o.chunk_memory_layout = 'C';
+        o.chunk_separator = '/';
+        o.attrs = attrs;
+        o.chunk_pool_size = 10;
+        o.fill_value = 0.0;
+
+        xt::zarray z = h.create_array(
             "/arthur/dent",  // path to the array in the store
             shape,  // array shape
             chunk_shape,  // chunk shape
             "<f8",  // data type, here little-endian 64-bit floating point
-            'C',  // memory layout
-            '/',  // chunk identifier separator
-            xt::xio_binary_config(),  // compressor (here, raw binary)
-            attrs,  // attributes
-            10,  // chunk pool size
-            0.  // fill value
+            o // options
         );
         // write array data
+        auto a = z.get_array<double>();
         a(2, 1) = 3.;
     }
 

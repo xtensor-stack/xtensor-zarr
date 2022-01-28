@@ -68,7 +68,7 @@ namespace xt
         {
             m_path = '/' + m_path;
         }
-        while (m_path.back() == '/')
+        while (!m_path.empty() && m_path.back() == '/')
         {
             m_path = m_path.substr(0, m_path.size() - 1);
         }
