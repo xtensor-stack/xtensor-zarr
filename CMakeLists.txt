@@ -76,14 +76,23 @@ find_package(zarray ${zarray_REQUIRED_VERSION} REQUIRED)
 set(nlohmann_json_REQUIRED_VERSION "3.9.1" )
 find_package(nlohmann_json ${nlohmann_json_REQUIRED_VERSION} REQUIRED)
 
-set(GDAL_REQUIRED_VERSION "3.0.0")
-find_package(GDAL ${GDAL_REQUIRED_VERSION} REQUIRED)
+option(XTENSOR_ZARR_ENABLE_GDAL "Enable GDAL Support" OFF)
+if(XTENSOR_ZARR_ENABLE_GDAL)
+    set(GDAL_REQUIRED_VERSION "3.0.0")
+    find_package(GDAL ${GDAL_REQUIRED_VERSION} REQUIRED)
+endif()
 
-set(Blosc_REQUIRED_VERSION "1.21.0")
-find_package(Blosc ${Blosc_REQUIRED_VERSION} REQUIRED)
+option(XTENSOR_ZARR_ENABLE_BLOSC "Enable BLOSC Support" OFF)
+if(XTENSOR_ZARR_ENABLE_BLOSC)
+    set(Blosc_REQUIRED_VERSION "1.21.0")
+    find_package(Blosc ${Blosc_REQUIRED_VERSION} REQUIRED)
+endif()
 
-set(ZLIB_REQUIRED_VERSION "1.2.11")
-find_package(ZLIB ${ZLIB_REQUIRED_VERSION} REQUIRED)
+option(XTENSOR_ZARR_ENABLE_ZLIB "Enable ZLIB Support" OFF)
+if(XTENSOR_ZARR_ENABLE_ZLIB)
+    set(ZLIB_REQUIRED_VERSION "1.2.11")
+    find_package(ZLIB ${ZLIB_REQUIRED_VERSION} REQUIRED)
+endif()
 
 #Remove the following lines when xtensor-io is fixed
 include(CMakeFindDependencyMacro)
@@ -101,17 +110,24 @@ set(XTENSOR_ZARR_HEADERS
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_file_system_store.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_gcs_store.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_aws_store.hpp
-    ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_gdal_store.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_common.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_compressor.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_chunked_array.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config.hpp
     ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xtensor_zarr_config_cling.hpp
 )
+if(XTENSOR_ZARR_ENABLE_GDAL)
 
-set(XTENSOR_ZARR_GDAL_SOURCE
-    ${XTENSOR_ZARR_SOURCE_DIR}/xtensor-zarr-gdal.cpp
-)
+    set(XTENSOR_ZARR_HEADERS
+        ${XTENSOR_ZARR_HEADERS}
+        ${XTENSOR_ZARR_INCLUDE_DIR}/xtensor-zarr/xzarr_gdal_store.hpp
+    )
+
+    set(XTENSOR_ZARR_GDAL_SOURCE
+        ${XTENSOR_ZARR_SOURCE_DIR}/xtensor-zarr-gdal.cpp
+    )
+endif()
+
 
 add_library(xtensor-zarr INTERFACE)
 target_link_libraries(xtensor-zarr INTERFACE xtensor-io zarray)
@@ -140,32 +156,38 @@ target_link_libraries(xtensor-zarr
     ${CPP_FILESYSTEM_LIBRARIES}
 )
 
-target_include_directories(xtensor-zarr
-    INTERFACE
-    $<BUILD_INTERFACE:${GDAL_INCLUDE_DIRS}>
-)
-target_link_libraries(xtensor-zarr
-    INTERFACE
-    ${GDAL_LIBRARIES}
-)
+if(XTENSOR_ZARR_ENABLE_GDAL)
+    target_include_directories(xtensor-zarr
+        INTERFACE
+        $<BUILD_INTERFACE:${GDAL_INCLUDE_DIRS}>
+    )
+    target_link_libraries(xtensor-zarr
+        INTERFACE
+        ${GDAL_LIBRARIES}
+    )
+endif()
 
-target_include_directories(xtensor-zarr
-    INTERFACE
-    $<BUILD_INTERFACE:${Blosc_INCLUDE_DIRS}>
-)
-target_link_libraries(xtensor-zarr
-    INTERFACE
-    ${Blosc_LIBRARIES}
-)
+if(XTENSOR_ZARR_ENABLE_BLOSC)
+    target_include_directories(xtensor-zarr
+        INTERFACE
+        $<BUILD_INTERFACE:${Blosc_INCLUDE_DIRS}>
+    )
+    target_link_libraries(xtensor-zarr
+        INTERFACE
+        ${Blosc_LIBRARIES}
+    )
+endif()
 
-target_include_directories(xtensor-zarr
-    INTERFACE
-    $<BUILD_INTERFACE:${zlib_INCLUDE_DIRS}>
-)
-target_link_libraries(xtensor-zarr
-    INTERFACE
-    ${zlib_LIBRARIES}
-)
+if(XTENSOR_ZARR_ENABLE_ZLIB)
+    target_include_directories(xtensor-zarr
+        INTERFACE
+        $<BUILD_INTERFACE:${zlib_INCLUDE_DIRS}>
+    )
+    target_link_libraries(xtensor-zarr
+        INTERFACE
+        ${zlib_LIBRARIES}
+    )
+endif()
 
 find_package(storage_client)
 message(STATUS "Trying to find Google Cloud Storage for GCS IO handler support")
@@ -377,3 +399,35 @@ configure_file(${PROJECT_NAME}.pc.in
                 @ONLY)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc"
         DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig/")
+
+install(FILES ${XTENSOR_ZARR_HEADERS}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/xtensor-zarr
+)
+
+add_executable(zarr_v3_example ${xtensor-zarr_SOURCE_DIR}/examples/zarr_v3_example.cpp)
+if(XTENSOR_ZARR_ENABLE_GDAL)
+    target_compile_definitions(zarr_v3_example PUBLIC "-DXTENSOR_ZARR_ENABLE_GDAL=1")
+endif()
+if(XTENSOR_ZARR_ENABLE_ZLIB)
+    target_compile_definitions(zarr_v3_example PUBLIC "-DXTENSOR_ZARR_ENABLE_ZLIB=1")
+endif()
+if(XTENSOR_ZARR_ENABLE_BLOSC)
+    target_compile_definitions(zarr_v3_example PUBLIC "-DXTENSOR_ZARR_ENABLE_BLOSC=1")
+endif()
+
+target_include_directories(
+    zarr_v3_example
+    PUBLIC
+    $<BUILD_INTERFACE:${XTENSOR_ZARR_INCLUDE_DIR}>
+    $<BUILD_INTERFACE:${xtensor_INCLUDE_DIRS}>
+
+    $<BUILD_INTERFACE:${ghc-filesystem-include}>
+    $<INSTALL_INTERFACE:include>
+)
+
+target_link_libraries(
+    zarr_v3_example
+    PUBLIC nlohmann_json::nlohmann_json
+    PUBLIC xtl
+    PUBLIC xtensor-zarr xtensor xtensor-io zarray
+)
