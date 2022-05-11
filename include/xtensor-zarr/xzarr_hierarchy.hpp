@@ -17,11 +17,20 @@
 #include "xzarr_group.hpp"
 #include "xzarr_common.hpp"
 #include "xzarr_file_system_store.hpp"
+
+#ifdef XTENSOR_ZARR_ENABLE_GDAL
 #include "xzarr_gdal_store.hpp"
-#include "xtensor_zarr_config.hpp"
 #include "xtensor-io/xio_gzip.hpp"
+#endif
+#include "xtensor_zarr_config.hpp"
+
+#ifdef XTENSOR_ZARR_ENABLE_ZLIB
 #include "xtensor-io/xio_zlib.hpp"
+#endif
+
+#ifdef XTENSOR_ZARR_ENABLE_BLOSC
 #include "xtensor-io/xio_blosc.hpp"
+#endif
 
 namespace xt
 {
@@ -226,15 +235,22 @@ namespace xt
     /*********************
      * precompiled types *
      *********************/
-
+#ifdef XTENSOR_ZARR_ENABLE_GDAL
     extern template void xzarr_register_compressor<xzarr_gdal_store, xio_gzip_config>();
     extern template void xzarr_register_compressor<xzarr_gdal_store, xio_zlib_config>();
     extern template void xzarr_register_compressor<xzarr_gdal_store, xio_blosc_config>();
     extern template class xchunked_array_factory<xzarr_gdal_store>;
-
     extern template void xzarr_register_compressor<xzarr_file_system_store, xio_gzip_config>();
+#endif
+
+#ifdef XTENSOR_ZARR_ENABLE_ZIP
     extern template void xzarr_register_compressor<xzarr_file_system_store, xio_zlib_config>();
+#endif
+
+#ifdef XTENSOR_ZARR_ENABLE_BLOSC
     extern template void xzarr_register_compressor<xzarr_file_system_store, xio_blosc_config>();
+#endif
+
     extern template class xchunked_array_factory<xzarr_file_system_store>;
 }
 
